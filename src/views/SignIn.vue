@@ -15,22 +15,24 @@
               <span class="font-semibold">メールアドレス</span>と
               <span class="font-semibold">パスワード</span>を入力してください。
             </p>
-            <form>
-              <div class="mb-2">
+            <form @submit.prevent="signIn">
+            <div class="mb-2">
                 <input
-                  type="email"
-                  placeholder="you@example.com"
-                  class="text-xl w-3/5 p-3 border rounded"
+                type="email"
+                v-model="email"
+                placeholder="you@example.com"
+                class="text-xl w-3/5 p-3 border rounded"
                 />
-              </div>
-              <div class="mb-2">
+            </div>
+            <div class="mb-2">
                 <input
-                  type="password"
-                  class="text-xl w-3/5 p-3 border rounded"
-                  placeholder="パスワード"
+                type="password"
+                v-model="password"
+                class="text-xl w-3/5 p-3 border rounded"
+                placeholder="パスワード"
                 />
-              </div>
-              <button type="submit" class="text-xl w-3/5 bg-green-800 text-white py-2 rounded">サインイン</button>
+            </div>
+            <button type="submit" class="text-xl w-3/5 bg-green-800 text-white py-2 rounded">サインイン</button>
             </form>
           </div>
         </div>
@@ -38,3 +40,33 @@
     </div>
   </div>
 </template>
+
+
+<script>
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+
+export default {
+  data() {
+    return {
+      email: "",
+      password: ""
+    };
+  },
+  methods: {
+    signIn() {
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(this.email, this.password)
+        .then(response => {
+          console.log(response);
+          this.$router.push("/");
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    }
+  }
+};
+
+</script>
