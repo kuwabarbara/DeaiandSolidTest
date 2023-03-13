@@ -54,6 +54,7 @@
 <script>
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
+import 'firebase/compat/database';
 import Notification from "../components/icons/Notification";
 import Search from "../components/icons/Search";
 import Star from "../components/icons/Star";
@@ -69,20 +70,7 @@ export default {
   data() {
     return {
       user: '',
-      users: [
-        {
-          user_id: 11,
-          email: 'john@example.com'
-        },
-        {
-          user_id: 12,
-          email: 'kevin@test.com'
-        },
-        {
-          user_id: 13,
-          email: 'susan@test.com'
-        }
-      ]
+      users: []
     };
   },
   components: {
@@ -103,6 +91,14 @@ export default {
   },
   mounted() {
     this.user = firebase.auth().currentUser;
+
+    firebase
+      .database()
+      .ref("users")
+      .on("child_added", snapshot => {
+        this.users.push(snapshot.val());
+      });
+
   }
 };
 
