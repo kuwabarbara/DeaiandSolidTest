@@ -25,15 +25,24 @@
                 />
             </div>
             <div class="mb-2">
-                <input
+              <input
                 type="password"
                 v-model="password"
                 class="text-xl w-3/5 p-3 border rounded"
                 placeholder="パスワード"
-                />
+              />
+            </div>
+            <div v-if="errors.length">
+              <ul class="my-4">
+                <li
+                  v-for="(error, index) in errors"
+                  :key="index"
+                  class="font-semibold text-red-700"
+                >{{ error }}</li>
+              </ul>
             </div>
             <button type="submit" class="text-xl w-3/5 bg-green-800 text-white py-2 rounded">サインイン</button>
-            </form>
+          </form>
           </div>
         </div>
       </div>
@@ -50,7 +59,8 @@ export default {
   data() {
     return {
       email: "",
-      password: ""
+      password: "",
+      errors: []
     };
   },
   methods: {
@@ -62,11 +72,11 @@ export default {
           console.log(response);
           this.$router.push("/");
         })
-        .catch(e => {
-          console.log(e);
+        .catch(() => {
+          this.password = "";
+          this.errors.push("メールアドレスかパスワードに誤りがあります。");
         });
     }
   }
-};
-
+}
 </script>
