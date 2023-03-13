@@ -4,7 +4,7 @@
     <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
       <h1 class="font-semibold text-xl leading-tight">Slack Clone</h1>
       <Notification />
-      <div>{{ user.email }}</div>
+      <div class="font-bold text-lg">{{ channel_name }}</div>
       <Call />
       <Information />
       <Cog />
@@ -15,7 +15,7 @@
 
     <div>ダイレクトめっせーじ</div>
     <div v-for="user in users" :key="user.user_id">
-          <span> {{ user.email }} </span>
+      <span class="opacity-50" @click="directMessage(user.email)">{{ user.email }}</span>
     </div>
 
     <main class="overflow-y-scroll flex-grow">
@@ -70,7 +70,8 @@ export default {
   data() {
     return {
       user: '',
-      users: []
+      users: [],
+      channel_name: ''
     };
   },
   components: {
@@ -87,6 +88,9 @@ export default {
     signOut() {
       firebase.auth().signOut();
       this.$router.push('/signin');
+    },
+    directMessage(email) {
+      this.channel_name = email;
     }
   },
   mounted() {
