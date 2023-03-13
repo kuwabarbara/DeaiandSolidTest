@@ -99,6 +99,12 @@ export default {
         this.users.push(snapshot.val());
       });
 
+  },
+  beforeDestroy() {
+  firebase
+    .database()
+    .ref("users")
+    .off();
   }
 };
 
