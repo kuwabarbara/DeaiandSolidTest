@@ -18,6 +18,31 @@
           <span> {{ user.email }} </span>
     </div>
 
+    <main class="overflow-y-scroll flex-grow">
+      <div class="flex flex-col ml-6 h-full">
+        <div class="flex-grow overflow-y-scroll">
+          <p>メッセージ一覧</p>
+        </div>
+        <div class="border border-gray-900 rounded mb-4">
+          <textarea class="w-full pt-4 pl-8 outline-none" placeholder="XXXXへのメッセージ"></textarea>
+          <div class="bg-gray-100 p-2">
+            <button class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded">送信</button>
+          </div>
+        </div>
+      </div>
+    </main> 
+
+
+    <div class="flex-grow overflow-y-scroll">
+      <div class="mt-2 mb-4 flex">
+        <Avator :user="user.email" />
+        <div class="ml-2">
+          <div class="font-bold">{{ user.email }}</div>
+          <div>初めてのメッセージ</div>
+        </div>
+      </div>
+    </div>
+
 
     <p>ログイン中</p>
     <div>
@@ -36,6 +61,8 @@ import Cog from "../components/icons/Cog";
 import Call from "../components/icons/Call";
 import Information from "../components/icons/Information";
 import AtSymbol from "../components/icons/AtSymbol";
+import Avator from "../components/Avator";
+
 
 export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
@@ -65,7 +92,8 @@ export default {
     Cog,
     Call,
     Information,
-    AtSymbol
+    AtSymbol,
+    Avator
   },
   methods: {
     signOut() {
