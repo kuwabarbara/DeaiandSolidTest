@@ -14,8 +14,9 @@
     </div>
 
     <div>ダイレクトめっせーじ</div>
-    <div v-for="user in users" :key="user.user_id">
-      <span class="opacity-50" @click="directMessage(user.email)">{{ user.email }}</span>
+    <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
+      <span class="bg-yellow-400 rounded-full w-3 h-3 mr-2"></span>
+      <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span>
     </div>
 
     <main class="overflow-y-scroll flex-grow">
@@ -52,6 +53,16 @@
 
     </div>
 
+<hr>
+    <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
+      <Avator :user="message.user" />
+      <div class="ml-2">
+        <div class="font-bold">{{ message.user }}</div>
+        <div>{{ message.content }}</div>
+      </div>
+    </div>
+<hr>
+
 
     <p>ログイン中</p>
     <div>
@@ -82,8 +93,10 @@ export default {
       users: [],
       channel_name: '',
       message: "",
+      messages: [],
       placeholder: "",
-      channels: []
+      channels: [],
+      channel_id: ""
     };
   },
   components: {
@@ -102,11 +115,48 @@ export default {
       this.$router.push('/signin');
     },
     sendMessage() {
-      console.log(this.message);
+      const newMessage = firebase
+        .database()
+        .ref("messages")
+        .child(this.channel_id)
+        .push();
+
+      const key_id = newMessage.key;
+
+      newMessage.set({
+        key: key_id,
+        content: this.message,
+        user: this.user.email,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      this.message = "";
     },
-    directMessage(email) {
-      this.channel_name = email;
-      this.placeholder = email + "へのメッセージ";
+    directMessage(user) {
+      this.messages = [];
+
+      this.user.uid > user.user_id
+        ? (this.channel_id = this.user.uid + "-" + user.user_id)
+        : (this.channel_id = user.user_id + "-" + this.user.uid);
+
+      if (this.channel_id != "") {
+        firebase
+          .database()
+          .ref("messages")
+          .child(this.channel_id)
+          .off();
+      }
+
+      this.channel_name = user.email;
+      this.placeholder = user.email + "へのメッセージ";
+
+      firebase
+        .database()
+        .ref("messages")
+        .child(this.channel_id)
+        .on("child_added", snapshot => {
+          this.messages.push(snapshot.val());
+        });
     }
   },
   mounted() {
@@ -121,10 +171,16 @@ export default {
 
   },
   beforeDestroy() {
-  firebase
-    .database()
-    .ref("users")
-    .off();
+    firebase
+      .database()
+      .ref("users")
+      .off();
+
+    firebase
+      .database()
+      .ref("messages")
+      .child(this.channel_id)
+      .off();
   }
 };
 
