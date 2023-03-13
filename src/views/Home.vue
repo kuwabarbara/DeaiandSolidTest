@@ -24,23 +24,32 @@
           <p>メッセージ一覧</p>
         </div>
         <div class="border border-gray-900 rounded mb-4">
-          <textarea class="w-full pt-4 pl-8 outline-none" placeholder="XXXXへのメッセージ"></textarea>
-          <div class="bg-gray-100 p-2">
-            <button class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded">送信</button>
+          <textarea
+            class="w-full pt-4 pl-8 outline-none"
+            :placeholder="placeholder"
+            v-model="message"
+          ></textarea>
+            <div class="bg-gray-100 p-2">
+              <button
+                class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
+                @click="sendMessage"
+              >送信</button>
+            </div>
           </div>
-        </div>
       </div>
     </main> 
 
 
     <div class="flex-grow overflow-y-scroll">
+
       <div class="mt-2 mb-4 flex">
         <Avator :user="user.email" />
         <div class="ml-2">
           <div class="font-bold">{{ user.email }}</div>
-          <div>初めてのメッセージ</div>
+          <div>{{ message }}</div>
         </div>
       </div>
+
     </div>
 
 
@@ -71,7 +80,10 @@ export default {
     return {
       user: '',
       users: [],
-      channel_name: ''
+      channel_name: '',
+      message: "",
+      placeholder: "",
+      channels: []
     };
   },
   components: {
@@ -89,8 +101,12 @@ export default {
       firebase.auth().signOut();
       this.$router.push('/signin');
     },
+    sendMessage() {
+      console.log(this.message);
+    },
     directMessage(email) {
       this.channel_name = email;
+      this.placeholder = email + "へのメッセージ";
     }
   },
   mounted() {
