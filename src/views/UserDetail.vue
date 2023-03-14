@@ -11,6 +11,15 @@
             </li>
             </ul>
         </div>
+        
+        <hr>
+        <div>
+            <img :src="imageUrl" alt="ユーザーのプロフィール画像">
+        </div>
+        <br>
+        このひとのプロフィール写真です！
+        <br>
+        <hr>
     </div>
 </template>
 
@@ -25,7 +34,8 @@ export default {
     return {
       users :[],
       file: null,
-      id :""
+      id :"",
+      imageUrl: ""
     }
   },
   methods: {
@@ -33,6 +43,20 @@ export default {
   created() {    
     const userId = this.$route.params.id
     this.id=userId
+
+    const storageRef = firebase.storage().ref();
+
+    // ユーザーのUIDとファイル名
+    const uid = this.id;
+    const fileName = "profile.jpg";
+
+    // Storageから画像のURLを取得する
+    const path = `users/${uid}/${fileName}`;
+    storageRef.child(path).getDownloadURL().then(url => {
+      this.imageUrl = url;
+    });
+
+
 
     firebase
       .database()

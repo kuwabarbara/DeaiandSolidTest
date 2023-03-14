@@ -16,7 +16,8 @@
     <div>ユーザー一覧</div>
     <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
       <Avator :user=user.email />
-      <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span>
+      <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span><br> 
+      <button @click="goToPage('users/'+user.user_id)">この人の詳細画面へ</button>
     </div>
     <div>ーーーーーーーーーー</div>
 
@@ -117,6 +118,9 @@ export default {
     Avator
   },
   methods: {
+    goToPage(pageName) {
+      this.$router.push({ path: '/' + pageName })
+    },
     
     // ファイルが選択された時に呼ばれるメソッド
     onFileChange(event) {
