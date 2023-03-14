@@ -13,11 +13,13 @@
       <Star />
     </div>
 
-    <div>ダイレクトめっせーじ</div>
+    <div>ユーザー一覧</div>
     <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
       <Avator :user=user.email />
       <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span>
     </div>
+    <div>ーーーーーーーーーー</div>
+
 
     <main class="overflow-y-scroll flex-grow">
       <div class="flex flex-col ml-6 h-full">
