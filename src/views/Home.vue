@@ -68,6 +68,21 @@
 
     <p>ログイン中</p>
 
+
+    <h1>ユーザー情報</h1>
+    <form @submit.prevent="saveUserData">
+      <label for="name">名前</label>
+      <input type="text" id="name" v-model="userData.name" required>
+      <label for="gender">性別</label>
+      <select id="gender" v-model="userData.gender" required>
+        <option value="男性">男性</option>
+        <option value="女性">女性</option>
+      </select>
+      <label for="status">ステータスコメント</label>
+      <input type="text" id="status" v-model="userData.status">
+      <button type="submit">保存</button>
+    </form>    
+
     <form @submit.prevent="uploadImage">
       <input type="file" @change="onFileChange">
       <button type="submit">アップロード</button>
@@ -104,7 +119,12 @@ export default {
       messages: [],
       placeholder: "",
       channels: [],
-      channel_id: ""
+      channel_id: "",
+      userData: {
+        name: '',
+        gender: '',
+        status: ''
+      }
     };
   },
   components: {
@@ -118,6 +138,29 @@ export default {
     Avator
   },
   methods: {
+    saveUserData() {
+      // Firebase Authenticationで認証されたユーザーのIDを取得する
+      const userId = firebase.auth().currentUser.uid
+
+      // ユーザーデータにユーザーIDを追加する
+      this.userData.userId = userId
+
+      // Firebase Realtime Databaseにデータを保存する
+      firebase.database().ref('users').push(this.userData)
+        .then(() => {
+          console.log('データを保存しました')
+          // 保存後にフォームをリセットする
+          this.userData = {
+            name: '',
+            gender: '',
+            status: ''
+          }
+        })
+        .catch(error => {
+          console.error('データの保存に失敗しました', error)
+        })
+    }, 
+
     goToPage(pageName) {
       this.$router.push({ path: '/' + pageName })
     },
