@@ -11,10 +11,6 @@
             </li>
             </ul>
         </div>
-            <form @submit.prevent="uploadImage">
-                <input type="file" @change="onFileChange">
-                <button type="submit">アップロード</button>
-            </form>
     </div>
 </template>
 
@@ -33,26 +29,6 @@ export default {
     }
   },
   methods: {
-
-    // ファイルが選択された時に呼ばれるメソッド
-    onFileChange(event) {
-      this.file = event.target.files[0];
-    },
-    // ファイルをアップロードするメソッド
-    uploadImage() {
-      const storageRef = firebase.storage().ref();
-
-      // ユーザーのUIDとファイル名
-      const uid = this.$route.params.id;
-      const fileName = "profile.jpg";
-
-      // Storageに画像をアップロードする
-      const path = `users/${uid}/${fileName}`;
-      const fileRef = storageRef.child(path);
-      fileRef.put(this.file).then(() => {
-        console.log("アップロードが完了しました。");
-      });
-    }
   },
   created() {    
     const userId = this.$route.params.id

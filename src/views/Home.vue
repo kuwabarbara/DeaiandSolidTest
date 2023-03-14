@@ -55,18 +55,23 @@
 
     </div>
 
-<hr>
-    <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
-      <Avator :user="message.user" />
-      <div class="ml-2">
-        <div class="font-bold">{{ message.user }}</div>
-        <div>{{ message.content }}</div>
-      </div>
-    </div>
-<hr>
-
+    <hr>
+        <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
+          <Avator :user="message.user" />
+          <div class="ml-2">
+            <div class="font-bold">{{ message.user }}</div>
+            <div>{{ message.content }}</div>
+          </div>
+        </div>
+    <hr>
 
     <p>ログイン中</p>
+
+    <form @submit.prevent="uploadImage">
+      <input type="file" @change="onFileChange">
+      <button type="submit">アップロード</button>
+    </form>
+
     <div>
        <button class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</button>
     </div>
@@ -112,6 +117,27 @@ export default {
     Avator
   },
   methods: {
+    
+    // ファイルが選択された時に呼ばれるメソッド
+    onFileChange(event) {
+      this.file = event.target.files[0];
+    },
+    // ファイルをアップロードするメソッド
+    uploadImage() {
+      const storageRef = firebase.storage().ref();
+
+      // ユーザーのUIDとファイル名
+      const uid = this.user.uid;
+      const fileName = "profile.jpg";
+
+      // Storageに画像をアップロードする
+      const path = `users/${uid}/${fileName}`;
+      const fileRef = storageRef.child(path);
+      fileRef.put(this.file).then(() => {
+        console.log("アップロードが完了しました。");
+      });
+    },
+
     signOut() {
       firebase.auth().signOut();
       this.$router.push('/signin');
