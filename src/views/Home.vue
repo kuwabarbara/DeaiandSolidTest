@@ -146,7 +146,7 @@ export default {
       this.userData.userId = userId
 
       // Firebase Realtime Databaseにデータを保存する
-      firebase.database().ref('users').push(this.userData)
+      firebase.database().ref('users2').child(userId).set(this.userData)
         .then(() => {
           console.log('データを保存しました')
           // 保存後にフォームをリセットする

@@ -11,6 +11,17 @@
             </li>
             </ul>
         </div>
+
+        <br>
+        <h1>ユーザー情報</h1>
+            <ul>
+            <li>
+                <h2>{{ user2.name }}</h2>
+                <p>性別: {{ user2.gender }}</p>
+                <p>ステータスコメント: {{ user2.status }}</p>
+            </li>
+            </ul>
+        <br>
         
         <hr>
         <div>
@@ -35,13 +46,29 @@ export default {
       users :[],
       file: null,
       id :"",
-      imageUrl: ""
+      imageUrl: "",
+      user2: null
     }
   },
   methods: {
   },
-  created() {    
+  created() {
     const userId = this.$route.params.id
+
+    // Firebase Realtime Databaseから指定したIDのユーザー情報を取得する
+    firebase.database().ref('users2').orderByKey().equalTo(userId).once('value')
+      .then(snapshot => {
+        const userData = snapshot.val()
+
+        // ユーザーデータをVueコンポーネントのデータに設定する
+        this.user2 = userData[userId]
+        console.log(userData[userId])
+      })
+      .catch(error => {
+        console.error(error)
+      })
+
+
     this.id=userId
 
     const storageRef = firebase.storage().ref();
