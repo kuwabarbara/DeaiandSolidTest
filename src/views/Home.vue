@@ -15,7 +15,7 @@
     </div>
 
     <div>ユーザー一覧</div>
-    <div class="flexbox">
+    <div class="container">
       <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
         <div v-if="useruser.gender === user.gender">
         </div>
@@ -23,7 +23,12 @@
           <Avator :user=useruser.email />
           <span class="opacity-50" @click="directMessage(useruser)">{{ useruser.email }}</span><br>
             <div>
-              {{useruser.gender}}
+              <div v-if="useruser.gender">
+                {{useruser.gender}}
+              </div>
+              <div v-else>
+                性別なし
+              </div>
             </div> 
           <button @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</button>
 
@@ -104,6 +109,19 @@
     </div>
   </div>
 </template>
+
+<style>
+  .container {
+    display: flex; /* 横並びにするためにflexboxを使用 */
+  }
+  .item {
+    width: 100px; /* アイテムの幅を指定 */
+    height: 100px; /* アイテムの高さを指定 */
+    background-color: gray; /* アイテムの背景色を指定 */
+    margin-right: 10px; /* アイテムの間に余白を指定 */
+  }
+</style>
+
 
 <script>
 import firebase from "firebase/compat/app";
