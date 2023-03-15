@@ -1,7 +1,5 @@
 <template>
   <div>
-
-
     <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
       <h1 class="font-semibold text-xl leading-tight">Deai</h1>
       <Notification />
@@ -13,7 +11,6 @@
       <AtSymbol />
       <Star />
     </div>
-
     <div>ユーザー一覧</div>
     <div class="container">
       <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
