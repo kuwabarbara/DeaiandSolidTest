@@ -56,7 +56,7 @@ export default {
     const userId = this.$route.params.id
 
     // Firebase Realtime Databaseから指定したIDのユーザー情報を取得する
-    firebase.database().ref('users2').orderByKey().equalTo(userId).once('value')
+    firebase.database().ref('users').orderByKey().equalTo(userId).once('value')
       .then(snapshot => {
         const userData = snapshot.val()
 

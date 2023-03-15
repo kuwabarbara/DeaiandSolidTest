@@ -1,6 +1,7 @@
 <template>
   <div>
 
+
     <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
       <h1 class="font-semibold text-xl leading-tight">Slack Clone</h1>
       <Notification />
@@ -14,10 +15,12 @@
     </div>
 
     <div>ユーザー一覧</div>
-    <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
-      <Avator :user=user.email />
-      <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span><br> 
-      <button @click="goToPage('users/'+user.user_id)">この人の詳細画面へ</button>
+    <div class="flexbox">
+      <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
+        <Avator :user=user.email />
+        <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span><br> 
+        <button @click="goToPage('users/'+user.user_id)">この人の詳細画面へ</button>
+      </div>
     </div>
     <div>ーーーーーーーーーー</div>
 
@@ -123,7 +126,8 @@ export default {
       userData: {
         name: '',
         gender: '',
-        status: ''
+        status: '',
+        email: ''
       }
     };
   },
@@ -140,13 +144,15 @@ export default {
   methods: {
     saveUserData() {
       // Firebase Authenticationで認証されたユーザーのIDを取得する
-      const userId = firebase.auth().currentUser.uid
+      const user_id = firebase.auth().currentUser.uid
 
       // ユーザーデータにユーザーIDを追加する
-      this.userData.userId = userId
+      this.userData.user_id = user_id
+
+      this.userData.email=this.user.email
 
       // Firebase Realtime Databaseにデータを保存する
-      firebase.database().ref('users2').child(userId).set(this.userData)
+      firebase.database().ref('users').child(user_id).set(this.userData)
         .then(() => {
           console.log('データを保存しました')
           // 保存後にフォームをリセットする
