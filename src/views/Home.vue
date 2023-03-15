@@ -16,10 +16,18 @@
 
     <div>ユーザー一覧</div>
     <div class="flexbox">
-      <div class="mt-2 flex items-center" v-for="user in users" :key="user.user_id">
-        <Avator :user=user.email />
-        <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span><br> 
-        <button @click="goToPage('users/'+user.user_id)">この人の詳細画面へ</button>
+      <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
+        <div v-if="useruser.gender === user.gender">
+        </div>
+        <div v-else>
+          <Avator :user=useruser.email />
+          <span class="opacity-50" @click="directMessage(useruser)">{{ useruser.email }}</span><br>
+            <div>
+              {{useruser.gender}}
+            </div> 
+          <button @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</button>
+
+        </div>
       </div>
     </div>
     <div>ーーーーーーーーーー</div>
@@ -140,6 +148,28 @@ export default {
     Information,
     AtSymbol,
     Avator
+  },
+  created(){
+    // 現在認証されているユーザーのUIDを取得する
+    const uid = firebase.auth().currentUser.uid;
+
+    // Realtime Databaseの参照を作成する
+    const dbRef = firebase.database().ref(`users/${uid}`);
+
+    // データを取得する
+    dbRef.once('value').then((snapshot) => {
+      const userData = snapshot.val(); // データをオブジェクト形式で取得する
+      const gender = userData.gender; // genderを取得する
+      const name = userData.name; // nameを取得する
+
+      // 取得したデータを使用する
+      console.log(`gender: ${gender}, name: ${name}`);
+      this.user.gender=gender
+      this.user.name=name
+
+
+    });
+
   },
   methods: {
     saveUserData() {
