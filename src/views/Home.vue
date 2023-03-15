@@ -58,7 +58,7 @@
       <div class="mt-2 mb-4 flex">
         <Avator :user="user.email" />
         <div class="ml-2">
-          <div class="font-bold">{{ user.email }}</div>
+          <div class="font-bold">{{ user.name }}</div>
           <div>{{ message }}</div>
         </div>
       </div>
@@ -248,7 +248,7 @@ export default {
       newMessage.set({
         key: key_id,
         content: this.message,
-        user: this.user.email,
+        user: this.user.name,
         createdAt: firebase.database.ServerValue.TIMESTAMP
       });
 
