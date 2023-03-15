@@ -1,16 +1,11 @@
 <template>
   <div>
-    <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
-      <h1 class="font-semibold text-xl leading-tight">Deai</h1>
-      <Notification />
-      <div class="font-bold text-lg">{{ channel_name }}</div>
-      <Call />
-      <Information />
-      <Cog />
-      <Search />
-      <AtSymbol />
-      <Star />
-    </div>
+    <v-app-bar color="primary" dark>
+      <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
+        <h1 class="font-semibold text-xl leading-tight">Deai</h1>
+      </div>
+    </v-app-bar>
+
     <div>ユーザー一覧</div>
     <div class="container">
       <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
@@ -18,7 +13,7 @@
         </div>
         <div v-else>
           <Avator :user=useruser.email />
-          <span class="opacity-50" @click="directMessage(useruser)">{{ useruser.email }}</span><br>
+          <span class="opacity-50" @click="directMessage(useruser)">{{ useruser.name }}</span><br>
             <div>
               <div v-if="useruser.gender">
                 {{useruser.gender}}
@@ -27,11 +22,12 @@
                 性別なし
               </div>
             </div> 
-          <button @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</button>
+          <v-btn @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</v-btn>
 
         </div>
       </div>
     </div>
+
     <div>ーーーーーーーーーー</div>
 
 
@@ -47,10 +43,10 @@
             v-model="message"
           ></textarea>
             <div class="bg-gray-100 p-2">
-              <button
+              <v-btn
                 class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
                 @click="sendMessage"
-              >送信</button>
+              >送信</v-btn>
             </div>
           </div>
       </div>
@@ -124,13 +120,13 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import 'firebase/compat/database';
-import Notification from "../components/icons/Notification";
-import Search from "../components/icons/Search";
-import Star from "../components/icons/Star";
-import Cog from "../components/icons/Cog";
-import Call from "../components/icons/Call";
-import Information from "../components/icons/Information";
-import AtSymbol from "../components/icons/AtSymbol";
+//import Notification from "../components/icons/Notification";
+//import Search from "../components/icons/Search";
+//import Star from "../components/icons/Star";
+//import Cog from "../components/icons/Cog";
+//import Call from "../components/icons/Call";
+//import Information from "../components/icons/Information";
+//import AtSymbol from "../components/icons/AtSymbol";
 import Avator from "../components/Avator";
 
 
@@ -155,13 +151,13 @@ export default {
     };
   },
   components: {
-    Notification,
-    Search,
-    Star,
-    Cog,
-    Call,
-    Information,
-    AtSymbol,
+    //Notification,
+    //Search,
+    //Star,
+    //Cog,
+    //Call,
+    //Information,
+    //AtSymbol,
     Avator
   },
   created(){
@@ -273,8 +269,8 @@ export default {
           .off();
       }
 
-      this.channel_name = user.email;
-      this.placeholder = user.email + "へのメッセージ";
+      this.channel_name = user.name;
+      this.placeholder = user.name + "へのメッセージ";
 
       firebase
         .database()
