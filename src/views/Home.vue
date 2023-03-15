@@ -3,7 +3,7 @@
 
 
     <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
-      <h1 class="font-semibold text-xl leading-tight">Slack Clone</h1>
+      <h1 class="font-semibold text-xl leading-tight">Deai</h1>
       <Notification />
       <div class="font-bold text-lg">{{ channel_name }}</div>
       <Call />
