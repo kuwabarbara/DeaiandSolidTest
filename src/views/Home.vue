@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div class="tabs">
+
     <v-app-bar color="primary" dark>
       <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
         <h1 class="font-semibold text-xl leading-tight">Deai</h1>
@@ -8,124 +9,145 @@
 
     <b>{{ user.name }}がログイン中</b>
 
+    <div class="tab-header">
+      <div
+        v-for="(tab, index) in tabs"
+        :key="index"
+        class="tab"
+        :class="{ active: activeTab === index }"
+        @click="activeTab = index"
+      >
+        {{ tab }}
+      </div>
+    </div>
 
-    <h1>ユーザー一覧</h1>
-    <div class="container">
-      <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
-        <div v-if="useruser.gender === user.gender">
+    <div class="tab-content">
+      <template v-if="activeTab === 0">
+        <h1>ユーザー一覧</h1>
+        <div class="container">
+          <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
+            <div v-if="useruser.gender === user.gender">
+            </div>
+            <div v-else>
+              <!-- <Avator :user=useruser.email /> -->
+              <span class="opacity-50" @click="directMessage(useruser)">名前：{{ useruser.name }}</span><br>
+                <div>
+                  <div v-if="useruser.gender">
+                    性別：{{useruser.gender}}
+                  </div>
+                  <div v-else>
+                    性別なし
+                  </div>
+                </div> 
+              <v-btn @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</v-btn>
+
+            </div>
+          </div>
         </div>
-        <div v-else>
-          <!-- <Avator :user=useruser.email /> -->
-          <span class="opacity-50" @click="directMessage(useruser)">名前：{{ useruser.name }}</span><br>
-            <div>
-              <div v-if="useruser.gender">
-                性別：{{useruser.gender}}
+
+
+        <hr>
+
+        <main class="overflow-y-scroll flex-grow">
+          <div class="flex flex-col ml-6 h-full">
+            <div class="flex-grow overflow-y-scroll">
+              <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
+            </div>
+            <div class="border border-gray-900 rounded mb-4">
+              <textarea autofocus
+                rows="5" cols="50"
+                class="w-full pt-4 pl-8 outline-none"
+                :placeholder="placeholder"
+                v-model="message"
+              ></textarea>
+                <div class="bg-gray-100 p-2">
+                  <v-btn
+                    class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
+                    @click="sendMessage"
+                  >送信</v-btn>
+                </div>
+              </div>
+          </div>
+        </main> 
+
+
+        <div class="flex-grow overflow-y-scroll">
+
+          <div class="mt-2 mb-4 flex">
+            <div class="ml-2">
+              <div>{{ message }}</div>
+            </div>
+          </div>
+
+        </div>
+
+        <hr>
+        <b>チャット</b>
+        <hr>
+            <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
+              <!-- <Avator :user="message.user" /> -->
+              <div v-if="message.user===user.name">
+                <div class="text-left">
+                  <v-container class="conversation-container">
+                  <v-card class="conversation-card">
+                    <div class="ml-2">
+                      <div class="font-bold">{{ message.user }}</div>
+                      <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                    </div>
+                  </v-card>
+                  </v-container>
+                </div>
               </div>
               <div v-else>
-                性別なし
+                  <div class="text-right">
+                    <v-container class="conversation-container">
+                      <v-card class="conversation-card right-align">
+                        <div class="ml-2">
+                          <v-card-text>
+                            <div class="font-bold">{{ message.user }}</div>
+                            <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                          </v-card-text>
+                        </div>
+                        </v-card>
+                    </v-container>
+                  </div>
               </div>
-            </div> 
-          <v-btn @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</v-btn>
-
-        </div>
-      </div>
-    </div>
-
-
-    <hr>
-
-    <main class="overflow-y-scroll flex-grow">
-      <div class="flex flex-col ml-6 h-full">
-        <div class="flex-grow overflow-y-scroll">
-          <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
-        </div>
-        <div class="border border-gray-900 rounded mb-4">
-          <textarea autofocus
-            rows="5" cols="50"
-            class="w-full pt-4 pl-8 outline-none"
-            :placeholder="placeholder"
-            v-model="message"
-          ></textarea>
-            <div class="bg-gray-100 p-2">
-              <v-btn
-                class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
-                @click="sendMessage"
-              >送信</v-btn>
             </div>
-          </div>
-      </div>
-    </main> 
+        <hr>
+      </template>
 
+      <template v-if="activeTab === 1">
+        <h1>情報登録（名前は後から変更不可）</h1>
+        <form @submit.prevent="saveUserData">
+          <v-label for="name">名前：</v-label>
+          <input type="text" id="name" v-model="userData.name" required>
+          <br>
+          <v-label for="gender">性別：</v-label>
+          <select id="gender" v-model="userData.gender" required>
+            <option value="男性">男性</option>
+            <option value="女性">女性</option>
+          </select>
+          <br>
+          <v-label for="status">ステータスコメント：</v-label>
+          <input type="text" id="status" v-model="userData.status">
+          <br>
+          <v-btn type="submit">保存</v-btn>
+        </form>    
 
-    <div class="flex-grow overflow-y-scroll">
+        <hr>
 
-      <div class="mt-2 mb-4 flex">
-        <div class="ml-2">
-          <div>{{ message }}</div>
+      </template>
+
+      <template v-if="activeTab === 2">
+        <form @submit.prevent="uploadImage">
+          <input type="file" @change="onFileChange">
+          <v-btn type="submit">プロフィール写真をアップロード</v-btn>
+        </form>
+
+        <div>
+          <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
         </div>
-      </div>
-
-    </div>
-    <hr>
-    <b>チャット</b>
-    <hr>
-        <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
-          <!-- <Avator :user="message.user" /> -->
-          <div v-if="message.user===user.name">
-            <div class="text-left">
-              <v-container class="conversation-container">
-              <v-card class="conversation-card">
-                <div class="ml-2">
-                  <div class="font-bold">{{ message.user }}</div>
-                  <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
-                </div>
-              </v-card>
-              </v-container>
-            </div>
-          </div>
-          <div v-else>
-              <div class="text-right">
-                <v-container class="conversation-container">
-                  <v-card class="conversation-card right-align">
-                    <div class="ml-2">
-                      <v-card-text>
-                        <div class="font-bold">{{ message.user }}</div>
-                        <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
-                      </v-card-text>
-                    </div>
-                    </v-card>
-                </v-container>
-              </div>
-          </div>
-        </div>
-    <hr>
-
-    <h1>情報登録（名前は後から変更不可）</h1>
-    <form @submit.prevent="saveUserData">
-      <v-label for="name">名前：</v-label>
-      <input type="text" id="name" v-model="userData.name" required>
-      <br>
-      <v-label for="gender">性別：</v-label>
-      <select id="gender" v-model="userData.gender" required>
-        <option value="男性">男性</option>
-        <option value="女性">女性</option>
-      </select>
-      <br>
-      <v-label for="status">ステータスコメント：</v-label>
-      <input type="text" id="status" v-model="userData.status">
-      <br>
-      <v-btn type="submit">保存</v-btn>
-    </form>    
-
-    <hr>
-
-    <form @submit.prevent="uploadImage">
-      <input type="file" @change="onFileChange">
-      <v-btn type="submit">プロフィール写真をアップロード</v-btn>
-    </form>
-
-    <div>
-       <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
+      </template>
     </div>
   </div>
 </template>
@@ -203,7 +225,9 @@ export default {
         status: '',
         email: ''
       },
-      dialog: false
+      dialog: false,
+      tabs: ['チャットルーム', '情報登録', 'プロフィール写真'],
+      activeTab: 0
     };
   },
   components: {
