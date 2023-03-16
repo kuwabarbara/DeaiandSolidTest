@@ -27,14 +27,18 @@
         
         <hr>
         <div>
-            <img :src="imageUrl" alt="ユーザーのプロフィール画像">
+          <v-card>
+            <v-img :src="imageUrl" height="300" width="400" :contain="true" />
+            <!-- <img :src="imageUrl" alt="ユーザーのプロフィール画像"> -->
+            プロフィール写真
+          </v-card>
         </div>
-        <br>
-        このひとのプロフィール写真です！
-        <br>
         <hr>
     </div>
 </template>
+
+
+
 
 <script>
 import firebase from "firebase/compat/app";

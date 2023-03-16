@@ -12,7 +12,7 @@
         <div v-if="useruser.gender === user.gender">
         </div>
         <div v-else>
-          <Avator :user=useruser.email />
+          <!-- <Avator :user=useruser.email /> -->
           <span class="opacity-50" @click="directMessage(useruser)">{{ useruser.name }}</span><br>
             <div>
               <div v-if="useruser.gender">
@@ -28,8 +28,8 @@
       </div>
     </div>
 
-    <div>ーーーーーーーーーー</div>
 
+    <hr>
 
     <main class="overflow-y-scroll flex-grow">
       <div class="flex flex-col ml-6 h-full">
