@@ -114,6 +114,10 @@
               </div>
             </div>
         <hr>
+        <div>
+          <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
+        </div>
+
       </template>
 
       <template v-if="activeTab === 1">
@@ -135,6 +139,10 @@
         </form>    
 
         <hr>
+
+        <div>
+          <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
+        </div>
 
       </template>
 
