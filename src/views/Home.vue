@@ -67,31 +67,36 @@
       </div>
 
     </div>
-
+    <hr>
+    <b>チャット</b>
     <hr>
         <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
           <!-- <Avator :user="message.user" /> -->
           <div v-if="message.user===user.name">
             <div class="text-left">
-              <div class="ml-2">
-                <div class="font-bold">{{ message.user }}</div>
-                <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
-              </div>
+              <v-container class="conversation-container">
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  <div class="font-bold">{{ message.user }}</div>
+                  <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                </div>
+              </v-card>
+              </v-container>
             </div>
           </div>
           <div v-else>
               <div class="text-right">
-              <v-container class="conversation-container">
-                <v-card class="conversation-card right-align">
-                  <div class="ml-2">
-                    <v-card-text>
-                      <div class="font-bold">{{ message.user }}</div>
-                      <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
-                    </v-card-text>
-                  </div>
-                  </v-card>
-                  </v-container>
-                </div>
+                <v-container class="conversation-container">
+                  <v-card class="conversation-card right-align">
+                    <div class="ml-2">
+                      <v-card-text>
+                        <div class="font-bold">{{ message.user }}</div>
+                        <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                      </v-card-text>
+                    </div>
+                    </v-card>
+                </v-container>
+              </div>
           </div>
         </div>
     <hr>
