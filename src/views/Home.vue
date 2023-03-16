@@ -16,10 +16,10 @@
         </div>
         <div v-else>
           <!-- <Avator :user=useruser.email /> -->
-          <span class="opacity-50" @click="directMessage(useruser)">{{ useruser.name }}</span><br>
+          <span class="opacity-50" @click="directMessage(useruser)">名前：{{ useruser.name }}</span><br>
             <div>
               <div v-if="useruser.gender">
-                {{useruser.gender}}
+                性別：{{useruser.gender}}
               </div>
               <div v-else>
                 性別なし
@@ -71,25 +71,37 @@
     <hr>
         <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
           <!-- <Avator :user="message.user" /> -->
-          <div class="ml-2">
-            <div class="font-bold">{{ message.user }}</div>
-            <div>{{ message.content }}</div>
+          <div v-if="message.user===user.name">
+            <div class="text-left">
+              <div class="ml-2">
+                <div class="font-bold">{{ message.user }}</div>
+                <div>{{ message.content }}</div>
+              </div>
+            </div>
+          </div>
+          <div v-else>
+            <div class="text-right">
+              <div class="ml-2">
+                <div class="font-bold">{{ message.user }}</div>
+                <div>{{ message.content }}</div>
+              </div>
+            </div>
           </div>
         </div>
     <hr>
 
     <h1>ユーザー情報</h1>
     <form @submit.prevent="saveUserData">
-      <label for="name">名前</label>
+      <v-label for="name">名前：</v-label>
       <input type="text" id="name" v-model="userData.name" required>
       <br>
-      <label for="gender">性別</label>
+      <v-label for="gender">性別：</v-label>
       <select id="gender" v-model="userData.gender" required>
         <option value="男性">男性</option>
         <option value="女性">女性</option>
       </select>
       <br>
-      <label for="status">ステータスコメント</label>
+      <v-label for="status">ステータスコメント：</v-label>
       <input type="text" id="status" v-model="userData.status">
       <br>
       <v-btn type="submit">保存</v-btn>
@@ -118,6 +130,7 @@
     background-color: gray; /* アイテムの背景色を指定 */
     margin-right: 10px; /* アイテムの間に余白を指定 */
   }
+  
 </style>
 
 
@@ -152,7 +165,8 @@ export default {
         gender: '',
         status: '',
         email: ''
-      }
+      },
+      dialog: false
     };
   },
   components: {
@@ -193,6 +207,12 @@ export default {
       const user_id = firebase.auth().currentUser.uid
 
       // ユーザーデータにユーザーIDを追加する
+
+      //名前の変更を不可能にする
+      if(this.user.name!=null){
+        this.userData.name=this.user.name
+      }
+
       this.userData.user_id = user_id
 
       this.userData.email=this.user.email
