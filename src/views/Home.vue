@@ -29,6 +29,11 @@
             <div v-if="useruser.gender === user.gender">
             </div>
             <div v-else>
+              <v-img 
+                  width="40"
+                  height="30"
+                  :src="getUserImage(useruser.user_id)"
+                  :contain="true"></v-img> <br>
               <!-- <Avator :user=useruser.email /> -->
               <span class="opacity-50" @click="directMessage(useruser)">名前：{{ useruser.name }}</span><br>
                 <div>
@@ -288,6 +293,13 @@ export default {
 
   },
   methods: {
+    getUserImage(userId) {
+      const storage = firebase.storage()
+      const userImageRef = storage.ref().child(`users/${userId}/profile.jpg`)
+      const url = userImageRef.getDownloadURL()
+      console.log("あ"+url+"あ")
+      return url
+    },
     saveUserData() {
       // Firebase Authenticationで認証されたユーザーのIDを取得する
       const user_id = firebase.auth().currentUser.uid
