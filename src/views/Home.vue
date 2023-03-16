@@ -5,8 +5,8 @@
         <h1 class="font-semibold text-xl leading-tight">Deai</h1>
       </div>
     </v-app-bar>
-    
-    <p>ログイン中</p>
+
+    <b>{{ user.name }}がログイン中</b>
 
 
     <h1>ユーザー一覧</h1>
@@ -61,7 +61,6 @@
 
       <div class="mt-2 mb-4 flex">
         <div class="ml-2">
-          <div class="font-bold">{{ user.name }}</div>
           <div>{{ message }}</div>
         </div>
       </div>

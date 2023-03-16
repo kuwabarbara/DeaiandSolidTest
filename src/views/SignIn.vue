@@ -41,7 +41,7 @@
                 >{{ error }}</li>
               </ul>
             </div>
-            <button type="submit" class="text-xl w-3/5 bg-green-800 text-white py-2 rounded">サインイン</button>
+            <v-btn type="submit" class="text-xl w-3/5 bg-green-800 text-white py-2 rounded">サインイン</v-btn>
           </form>
           </div>
         </div>
