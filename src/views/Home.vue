@@ -75,7 +75,7 @@
             <div class="text-left">
               <div class="ml-2">
                 <div class="font-bold">{{ message.user }}</div>
-                <div>{{ message.content }}</div>
+                <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
               </div>
             </div>
           </div>
@@ -83,7 +83,7 @@
             <div class="text-right">
               <div class="ml-2">
                 <div class="font-bold">{{ message.user }}</div>
-                <div>{{ message.content }}</div>
+                <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
               </div>
             </div>
           </div>

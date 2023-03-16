@@ -1,7 +1,8 @@
 <template>
   <div>
+  <div class="my-12 text-center">
     <header class="flex justify-between p-4 border-b items-center">
-      <h1 class="font-semibold text-xl leading-tight">Slack Clone</h1>
+      <h1 class="font-semibold text-xl leading-tight">Deai</h1>
       <button class="py-1 px-4 border-2 border-green-800 rounded">
         <router-link to="/signin">サインイン</router-link>
       </button>
@@ -41,15 +42,15 @@
         </li>
       </ul>
     </div>
-    <button
+    <v-btn
       type="submit"
       class="text-xl w-3/5 bg-green-800 text-white py-2 rounded"
     >
       ユーザの登録
-    </button>
+    </v-btn>
     </form>    
 
-
+  </div>
   </div>
 
 
