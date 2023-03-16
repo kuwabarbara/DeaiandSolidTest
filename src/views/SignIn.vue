@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col h-screen">
     <header class="flex justify-between p-4 border-b items-center">
-      <h1 class="font-semibold text-xl leading-tight">Slack Clone</h1>
+      <h1 class="font-semibold text-xl leading-tight">Deai</h1>
       <button class="py-1 px-4 border-2 border-green-800 rounded">
-        <router-link to="/register">Slack Cloneをはじめる</router-link>
+        <router-link to="/register">Deaiをはじめる</router-link>
       </button>
     </header>
     <div class="bg-gray-100 flex-auto">

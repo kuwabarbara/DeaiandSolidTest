@@ -47,40 +47,7 @@
 
 
         <hr>
-
-        <main class="overflow-y-scroll flex-grow">
-          <div class="flex flex-col ml-6 h-full">
-            <div class="flex-grow overflow-y-scroll">
-              <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
-            </div>
-            <div class="border border-gray-900 rounded mb-4">
-              <textarea autofocus
-                rows="5" cols="50"
-                class="w-full pt-4 pl-8 outline-none"
-                :placeholder="placeholder"
-                v-model="message"
-              ></textarea>
-                <div class="bg-gray-100 p-2">
-                  <v-btn
-                    class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
-                    @click="sendMessage"
-                  >送信</v-btn>
-                </div>
-              </div>
-          </div>
-        </main> 
-
-
-        <div class="flex-grow overflow-y-scroll">
-
-          <div class="mt-2 mb-4 flex">
-            <div class="ml-2">
-              <div>{{ message }}</div>
-            </div>
-          </div>
-
-        </div>
-
+        <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
         <hr>
         <b>チャット</b>
         <hr>
@@ -114,6 +81,41 @@
               </div>
             </div>
         <hr>
+
+        <main class="overflow-y-scroll flex-grow">
+          <div class="flex flex-col ml-6 h-full">
+            <div class="flex-grow overflow-y-scroll">              
+            </div>
+            <div class="border border-gray-900 rounded mb-4">
+              <textarea autofocus
+                rows="5" cols="50"
+                class="w-full pt-4 pl-8 outline-none"
+                :placeholder="placeholder"
+                v-model="message"
+              ></textarea>
+                <div class="bg-gray-100 p-2">
+                  <v-btn
+                    class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
+                    @click="sendMessage"
+                  >送信</v-btn>
+                </div>
+              </div>
+          </div>
+        </main> 
+
+
+        <div class="flex-grow overflow-y-scroll">
+
+          <div class="mt-2 mb-4 flex">
+            <div class="ml-2">
+              <div>{{ message }}</div>
+            </div>
+          </div>
+
+        </div>
+
+
+
         <div>
           <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
         </div>
