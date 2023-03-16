@@ -5,8 +5,11 @@
         <h1 class="font-semibold text-xl leading-tight">Deai</h1>
       </div>
     </v-app-bar>
+    
+    <p>ログイン中</p>
 
-    <div>ユーザー一覧</div>
+
+    <h1>ユーザー一覧</h1>
     <div class="container">
       <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
         <div v-if="useruser.gender === user.gender">
@@ -34,10 +37,11 @@
     <main class="overflow-y-scroll flex-grow">
       <div class="flex flex-col ml-6 h-full">
         <div class="flex-grow overflow-y-scroll">
-          <p>メッセージ一覧</p>
+          <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
         </div>
         <div class="border border-gray-900 rounded mb-4">
-          <textarea
+          <textarea autofocus
+            rows="5" cols="50"
             class="w-full pt-4 pl-8 outline-none"
             :placeholder="placeholder"
             v-model="message"
@@ -56,7 +60,6 @@
     <div class="flex-grow overflow-y-scroll">
 
       <div class="mt-2 mb-4 flex">
-        <Avator :user="user.email" />
         <div class="ml-2">
           <div class="font-bold">{{ user.name }}</div>
           <div>{{ message }}</div>
@@ -67,7 +70,7 @@
 
     <hr>
         <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
-          <Avator :user="message.user" />
+          <!-- <Avator :user="message.user" /> -->
           <div class="ml-2">
             <div class="font-bold">{{ message.user }}</div>
             <div>{{ message.content }}</div>
@@ -75,30 +78,32 @@
         </div>
     <hr>
 
-    <p>ログイン中</p>
-
-
     <h1>ユーザー情報</h1>
     <form @submit.prevent="saveUserData">
       <label for="name">名前</label>
       <input type="text" id="name" v-model="userData.name" required>
+      <br>
       <label for="gender">性別</label>
       <select id="gender" v-model="userData.gender" required>
         <option value="男性">男性</option>
         <option value="女性">女性</option>
       </select>
+      <br>
       <label for="status">ステータスコメント</label>
       <input type="text" id="status" v-model="userData.status">
-      <button type="submit">保存</button>
+      <br>
+      <v-btn type="submit">保存</v-btn>
     </form>    
+
+    <hr>
 
     <form @submit.prevent="uploadImage">
       <input type="file" @change="onFileChange">
-      <button type="submit">アップロード</button>
+      <v-btn type="submit">プロフィール写真をアップロード</v-btn>
     </form>
 
     <div>
-       <button class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</button>
+       <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
     </div>
   </div>
 </template>
@@ -127,7 +132,7 @@ import 'firebase/compat/database';
 //import Call from "../components/icons/Call";
 //import Information from "../components/icons/Information";
 //import AtSymbol from "../components/icons/AtSymbol";
-import Avator from "../components/Avator";
+//import Avator from "../components/Avator";
 
 
 export default {
@@ -158,7 +163,7 @@ export default {
     //Call,
     //Information,
     //AtSymbol,
-    Avator
+    //Avator
   },
   created(){
     // 現在認証されているユーザーのUIDを取得する
