@@ -17,7 +17,7 @@
         :class="{ active: activeTab === index }"
         @click="activeTab = index"
       >
-        {{ tab }}
+        <span>{{ tab }}</span>
       </div>
     </div>
 
@@ -153,6 +153,21 @@
 </template>
 
 <style>
+  .tab span {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #ccc;
+    border-radius: 5px;
+  }
+  .tab-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+  }
   .conversation-container {
     display: flex;
     flex-direction: column-reverse;
