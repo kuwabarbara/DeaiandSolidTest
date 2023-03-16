@@ -80,17 +80,23 @@
             </div>
           </div>
           <div v-else>
-            <div class="text-right">
-              <div class="ml-2">
-                <div class="font-bold">{{ message.user }}</div>
-                <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
-              </div>
-            </div>
+              <div class="text-right">
+              <v-container class="conversation-container">
+                <v-card class="conversation-card right-align">
+                  <div class="ml-2">
+                    <v-card-text>
+                      <div class="font-bold">{{ message.user }}</div>
+                      <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                    </v-card-text>
+                  </div>
+                  </v-card>
+                  </v-container>
+                </div>
           </div>
         </div>
     <hr>
 
-    <h1>ユーザー情報</h1>
+    <h1>情報登録（名前は後から変更不可）</h1>
     <form @submit.prevent="saveUserData">
       <v-label for="name">名前：</v-label>
       <input type="text" id="name" v-model="userData.name" required>
@@ -121,6 +127,33 @@
 </template>
 
 <style>
+  .conversation-container {
+    display: flex;
+    flex-direction: column-reverse;
+    padding: 20px;
+  }
+
+  .conversation-card {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0px 0px 10px #ccc;
+    margin-bottom: 10px;
+    padding: 10px;
+    width: fit-content;
+  }
+
+  .conversation-card.right-align {
+    align-self: flex-end;
+  }
+
+  .conversation-card .v-card-title {
+    padding: 0;
+  }
+
+  .conversation-card .v-icon {
+    font-size: 18px;
+    margin-right: 5px;
+  }
   .container {
     display: flex; /* 横並びにするためにflexboxを使用 */
   }
