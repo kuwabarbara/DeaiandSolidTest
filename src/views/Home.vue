@@ -340,7 +340,7 @@ export default {
       this.file = event.target.files[0];
     },
     // ファイルをアップロードするメソッド
-    uploadImage() {
+    async uploadImage() {
       const storageRef = firebase.storage().ref();
 
       // ユーザーのUIDとファイル名
@@ -353,6 +353,27 @@ export default {
       fileRef.put(this.file).then(() => {
         console.log("アップロードが完了しました。");
       });
+
+      const db = firebase.database()
+      const usersRef = db.ref('users')
+      const userId = uid // ユーザーID
+
+      const storage = firebase.storage()
+      const userImageRef = storage.ref().child(path)
+      const url = await userImageRef.getDownloadURL()
+      console.log(url)
+      const img_url = url // 追加するimg_urlの値
+
+      // ユーザーの情報を取得して更新する
+      usersRef.child(userId).once('value', snapshot => {
+        const userData2 = snapshot.val()
+        if (userData2) {
+          userData2.img_url = img_url // img_urlを追加
+          usersRef.child(userId).set(userData2) // 更新したユーザー情報をデータベースに保存
+        }
+      })
+
+
     },
 
     signOut() {
