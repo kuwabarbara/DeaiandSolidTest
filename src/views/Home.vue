@@ -30,9 +30,9 @@
             </div>
             <div v-else>
               <v-img 
-                  width="40"
-                  height="30"
-                  :src="getUserImage(useruser.user_id)"
+                  width="120"
+                  height="80"
+                  :src=useruser.img_url
                   :contain="true"></v-img> <br>
               <!-- <Avator :user=useruser.email /> -->
               <span class="opacity-50" @click="directMessage(useruser)">名前：{{ useruser.name }}</span><br>
