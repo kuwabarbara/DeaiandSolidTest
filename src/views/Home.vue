@@ -253,7 +253,8 @@ export default {
         name: '',
         gender: '',
         status: '',
-        email: ''
+        email: '',
+        img_url : ''
       },
       dialog: false,
       tabs: ['チャットルーム', '情報登録', 'プロフィール写真'],
@@ -287,6 +288,8 @@ export default {
       console.log(`gender: ${gender}, name: ${name}`);
       this.user.gender=gender
       this.user.name=name
+      this.user.img_url=userData.img_url
+
 
 
     });
@@ -310,6 +313,13 @@ export default {
       if(this.user.name!=null){
         this.userData.name=this.user.name
       }
+
+      var x = ""
+      if(this.user.img_url!=null){
+        x=this.user.img_url
+      }
+
+      this.userData.img_url=x
 
       this.userData.user_id = user_id
 
@@ -370,6 +380,7 @@ export default {
         if (userData2) {
           userData2.img_url = img_url // img_urlを追加
           usersRef.child(userId).set(userData2) // 更新したユーザー情報をデータベースに保存
+          this.user.img_url=img_url
         }
       })
 
