@@ -131,7 +131,12 @@
 
         </div>
 
+        <div>
+          <v-btn v-on:click="generateMessage">おすすめ返信ボタン</v-btn>
+          {{kaiwa}}
+        </div>
 
+        <br>
 
         <div>
           <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
@@ -253,6 +258,7 @@ export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
   data() {
     return {
+      kaiwa: "",
       user: '',
       users: [],
       channel_name: '',
@@ -311,6 +317,38 @@ export default {
 
   },
   methods: {
+    generateMessage(){
+      var kaiwa=""
+      for(var i=0; i<this.messages.length; i++){
+        kaiwa+=this.messages[i].user+": "+this.messages[i].content+"\n"
+      }
+
+      var apiKey=process.env.openAI
+
+      // GPT-3による返信の生成
+      fetch("https://api.openai.com/v1/engines/davinci/completions", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+          prompt: kaiwa,
+          max_tokens: 50
+      })
+      })
+      .then(response => response.json())
+      .then(data => {
+      const reply = data.choices[0].text.trim();
+      console.log("あああ"+reply+"あああ");
+      this.kaiwa=reply.split("\n")[0]
+      })
+      .catch(error => {
+      console.error(error);
+      });
+
+
+    },
     getUserImage(userId) {
       const storage = firebase.storage()
       const userImageRef = storage.ref().child(`users/${userId}/profile.jpg`)
