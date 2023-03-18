@@ -7,7 +7,7 @@
       </div>
     </v-app-bar>
 
-    <b>{{ user.name }}がログイン中</b>
+    <b>{{ user.name }}がログイン中</b>    
 
     <div class="tab-header">
       <div
@@ -21,6 +21,18 @@
       </div>
     </div>
 
+    <b>私について</b><br>
+    <v-img 
+        width="120"
+        height="80"
+        :src=user.img_url
+        :contain="true"></v-img> <br>
+    <span class="opacity-50" @click="directMessage(user)">名前：{{ user.name }}</span><br>
+    <span>性別：{{user.gender}}</span><br>
+    <span>メールアドレス：{{user.email}}</span><br>
+    <span>ステータスコメント：{{user.status}}</span><br>
+
+
     <div class="tab-content">
       <template v-if="activeTab === 0">
         <h1>ユーザー一覧</h1>
@@ -29,7 +41,6 @@
             <div v-if="useruser.gender === user.gender">
             </div>
             <div v-else>
-            aaa
               <v-img 
                   width="120"
                   height="80"
@@ -284,12 +295,15 @@ export default {
       const userData = snapshot.val(); // データをオブジェクト形式で取得する
       const gender = userData.gender; // genderを取得する
       const name = userData.name; // nameを取得する
+      const status = userData.status; // statusを取得する
+
 
       // 取得したデータを使用する
       console.log(`gender: ${gender}, name: ${name}`);
       this.user.gender=gender
       this.user.name=name
       this.user.img_url=userData.img_url
+      this.user.status=status
 
 
 
