@@ -9,6 +9,8 @@ Vue.config.productionTip = false;
  
 /// .envから環境変数取り込み
 
+//console.log(process.env.openAI)
+
 const firebaseConfig = {
   apiKey: process.env.apiKey,
   authDomain: process.env.authDomain,
