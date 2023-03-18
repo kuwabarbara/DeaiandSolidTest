@@ -6,15 +6,17 @@ import firebase from "firebase/compat/app";
 import vuetify from './plugins/vuetify'
 
 Vue.config.productionTip = false;
+ 
+/// .envから環境変数取り込み
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCjOJEsaPMolxkOKBBp6oOEBxAgthuR4qY",
-  authDomain: "vuesc-ce12f.firebaseapp.com",
-  databaseURL: "https://vuesc-ce12f-default-rtdb.firebaseio.com",
+  apiKey: process.env.apiKey,
+  authDomain: process.env.authDomain,
+  databaseURL: process.env.databaseURL,
   projectId: "vuesc-ce12f",
-  storageBucket: "vuesc-ce12f.appspot.com",
-  messagingSenderId: "339647178957",
-  appId: "1:339647178957:web:68f233f8a5079879c2e184"
+  storageBucket: process.env.storageBucket,
+  messagingSenderId: process.env.messagingSenderId,
+  appId: process.env.appId
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
