@@ -40,7 +40,7 @@
           <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
             <div v-if="useruser.gender === user.gender">
             </div>
-            <div v-else>
+            <div v-else-if="mailDomain==extractDomain(useruser.email)">
               <v-img 
                   width="120"
                   height="80"
@@ -282,7 +282,8 @@ export default {
       },
       dialog: false,
       tabs: ['チャットルーム', '情報登録', 'プロフィール写真'],
-      activeTab: 0
+      activeTab: 0,
+      mailDomain: ""
     };
   },
   components: {
@@ -316,6 +317,7 @@ export default {
       this.user.name=name
       this.user.img_url=userData.img_url
       this.user.status=status
+      this.mailDomain=this.extractDomain(userData.email)
 
 
 
@@ -355,6 +357,21 @@ export default {
 
 
     },
+    extractDomain(email) {
+      // '@'の位置を探す
+      const atIndex = email.indexOf('@');
+      
+      // ドメインを含まない場合はnullを返す
+      if (atIndex === -1) {
+        return null;
+      }
+      
+      // '@'以降の文字列を抽出する
+      const domain = email.slice(atIndex + 1);
+      
+      // ドメインを返す
+      return domain;
+    },    
     getUserImage(userId) {
       const storage = firebase.storage()
       const userImageRef = storage.ref().child(`users/${userId}/profile.jpg`)

@@ -47,6 +47,9 @@
         </div>
       </div>
     </div>
+    <div v-if="showSpinner">
+      <i class="fa fa-spinner fa-spin"></i> Please wait...
+    </div>
   </div>
 </template>
 
@@ -60,19 +63,27 @@ export default {
     return {
       email: "",
       password: "",
-      errors: []
+      errors: [],
+      showSpinner: false
     };
   },
   methods: {
     signIn() {
+      this.showSpinner = true;
       firebase
         .auth()
         .signInWithEmailAndPassword(this.email, this.password)
         .then(response => {
           console.log(response);
-          this.$router.push("/");
+          setTimeout(() => {
+              this.showSpinner = false;
+              // do something else, such as redirect to home page
+              this.$router.push("/");
+            }, 5000); // hide spinner after 3 seconds
+
         })
         .catch(() => {
+          this.showSpinner = false;
           this.password = "";
           this.errors.push("メールアドレスかパスワードに誤りがあります。");
         });
