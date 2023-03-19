@@ -132,8 +132,14 @@
         </div>
 
         <div>
-          <v-btn v-on:click="generateMessage">おすすめ返信ボタン</v-btn>
-          {{kaiwa}}
+          <v-btn v-on:click="generateMessage">返信考えてくれるボタン</v-btn>
+            <v-container class="conversation-container">
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  {{kaiwa}}
+                </div>
+              </v-card>
+            </v-container>
         </div>
 
         <br>
