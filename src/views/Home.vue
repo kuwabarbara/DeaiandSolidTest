@@ -319,12 +319,35 @@ export default {
       this.user.status=status
       this.mailDomain=this.extractDomain(userData.email)
 
+      const domain = this.mailDomain; // 取得したい大学のドメイン名
+      this.getUniversityInfo(domain)
+        .then((result) => {
+          const universityName = result.universityName;
+          const universityLogo = result.universityLogo;
+          console.log("ううううう"+universityName, universityLogo);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
 
 
     });
 
   },
   methods: {
+    async getUniversityInfo(domain) {
+      const url = `http://universities.hipolabs.com/search?domain=${domain}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        const universityName = data[0].name;
+        const universityLogo = data[0].logo;
+        return { universityName, universityLogo };
+      } else {
+        throw new Error("No university found for the given domain");
+      }
+    },
     generateMessage(){
       var kaiwa=""
       for(var i=0; i<this.messages.length; i++){
