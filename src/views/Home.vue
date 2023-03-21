@@ -32,6 +32,8 @@
     <span>メールアドレス：{{user.email}}</span><br>
     <span>ステータスコメント：{{user.status}}</span><br>
 
+    <span> {{univName}}の学生です </span>
+
 
     <div class="tab-content">
       <template v-if="activeTab === 0">
@@ -283,7 +285,8 @@ export default {
       dialog: false,
       tabs: ['チャットルーム', '情報登録', 'プロフィール写真'],
       activeTab: 0,
-      mailDomain: ""
+      mailDomain: "",
+      univName: ""
     };
   },
   components: {
@@ -324,7 +327,9 @@ export default {
         .then((result) => {
           const universityName = result.universityName;
           const universityLogo = result.universityLogo;
-          console.log("ううううう"+universityName, universityLogo);
+          console.log("ううううう"+universityName)
+          console.log("ええ"+universityLogo+"けけ");
+          this.univName=universityName;
         })
         .catch((error) => {
           console.error(error);
@@ -342,11 +347,37 @@ export default {
       
       if (data.length > 0) {
         const universityName = data[0].name;
-        const universityLogo = data[0].logo;
+        const universityLogoUrl = data[0].logo;
+        let universityLogo = "";
+
+        if (universityLogoUrl) {
+          try {
+            const logoResponse = await fetch(universityLogoUrl);
+            const logoBlob = await logoResponse.blob();
+            const logoBase64 = await this.blobToBase64(logoBlob);
+            universityLogo = `data:${logoResponse.headers.get("content-type")};base64,${logoBase64}`;
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        
         return { universityName, universityLogo };
       } else {
         throw new Error("No university found for the given domain");
       }
+    },
+    async blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+          const base64data = reader.result.split(",")[1];
+          resolve(base64data);
+        };
+        reader.onerror = () => {
+          reject(new Error("Failed to convert blob to base64"));
+        };
+      });
     },
     generateMessage(){
       var kaiwa=""
