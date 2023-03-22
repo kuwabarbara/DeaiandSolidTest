@@ -376,6 +376,25 @@ export default {
         });
 
 
+        // Firebase Realtime Databaseからデータを取得する
+        firebase.database().ref('timetables').child(uid).once('value')
+          .then((snapshot) => {
+            // 取得したデータをVue.jsのデータに代入する
+            const data = snapshot.val();
+            for (let i = 0; i < 10; i++) {
+              for (let day in data[i]) {
+                const index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
+                if (index >= 0) {
+                  this.timetable[i][index] = data[i][day];
+                }
+              }
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+
     });
 
   },
