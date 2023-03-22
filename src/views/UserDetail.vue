@@ -41,7 +41,7 @@
               <tr v-for="(classes, index) in timetable" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
                 <td v-for="(classData, day) in classes" :key="day">
-                  <input type="text" :value="classData" @input="updateClassData(index, day, $event.target.value)">
+                  <input type="text" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
             </tbody>
