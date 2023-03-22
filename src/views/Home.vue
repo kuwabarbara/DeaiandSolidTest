@@ -36,9 +36,6 @@
 
     <v-spacer/>
 
-    {{univWebPage}}
-
-
     <div class="tab-content">
       <template v-if="activeTab === 0">
         <h1>ユーザー一覧</h1>
