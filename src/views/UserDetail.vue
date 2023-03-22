@@ -1,19 +1,5 @@
 <template>
     <div>
-    <!--
-        <hr>
-        {{ id }}
-        <hr>
-        <div>
-            <ul>
-            <li v-for="(user, index) in users" :key="index">
-                {{ user.email }}
-                このuserのuidは{{user.user_id}}
-            </li>
-            </ul>
-        </div>
-    -->
-
         <br>
         <h1>ユーザー情報</h1>
             <ul>
@@ -33,7 +19,10 @@
             </li>
             </ul>
         <br>
-        <hr>
+
+        <br>
+
+        <v-label>{{user2.name}}の時間割</v-label>
 
           <table>
             <thead>
@@ -50,13 +39,14 @@
               <tr v-for="(classes, index) in timetable" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
                 <td v-for="(classData, day) in classes" :key="day">
-                  <input type="text" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
+                  <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
             </tbody>
           </table>
 
-        <hr>
+        <br>
+        <v-label>私の時間割</v-label>
 
           <table>
             <thead>
@@ -73,7 +63,7 @@
               <tr v-for="(classes, index) in timetable2" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
                 <td v-for="(classData, day) in classes" :key="day">
-                  <input type="text" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
+                  <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
             </tbody>
