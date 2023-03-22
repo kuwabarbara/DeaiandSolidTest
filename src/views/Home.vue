@@ -173,6 +173,34 @@
         <hr>
 
         <div>
+          <h2>Enter Your Timetable</h2>
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(classes, index) in timetable" :key="index">
+                <td>{{ index + 1 }}限</td>
+                <td v-for="(classData, day) in classes" :key="day">
+                  <input type="text" :value="classData" @input="updateClassData(index, day, $event.target.value)">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <v-btn @click="saveTimetable">Save</v-btn>
+        </div>
+
+
+        <hr>
+
+        <div>
           <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
         </div>
 
@@ -266,6 +294,18 @@ export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
   data() {
     return {
+      timetable: [
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" }
+      ],
       kaiwa: "",
       user: '',
       users: [],
@@ -340,6 +380,18 @@ export default {
 
   },
   methods: {
+    updateClassData(index, day, value) {
+      this.timetable[index][day] = value;
+    },
+    saveTimetable() {
+      const user_id = firebase.auth().currentUser.uid
+      const db = firebase.database()
+
+      // Firebase Realtime Databaseに時間割データを保存する
+      db.ref(`timetables/${user_id}`).set(this.timetable)
+        .then(() => console.log('Timetable saved!'))
+        .catch(error => console.error('Error saving timetable:', error));
+    },
     async getUniversityInfo(domain) {
       const url = `http://universities.hipolabs.com/search?domain=${domain}`;
       const response = await fetch(url);
