@@ -173,7 +173,7 @@
         <hr>
 
         <div>
-          <h2>Enter Your Timetable</h2>
+          <h2>時間割を入力してね</h2>
           <table>
             <thead>
               <tr>
@@ -187,7 +187,7 @@
             </thead>
             <tbody>
               <tr v-for="(classes, index) in timetable" :key="index">
-                <td>{{ index + 1 }}限</td>
+                <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
                 <td v-for="(classData, day) in classes" :key="day">
                   <input type="text" :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
@@ -330,6 +330,7 @@ export default {
     };
   },
   components: {
+
     //Notification,
     //Search,
     //Star,
