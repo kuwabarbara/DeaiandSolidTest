@@ -34,6 +34,10 @@
 
     <span> {{univName}}の学生です </span>
 
+    <v-spacer/>
+
+    {{univWebPage}}
+
 
     <div class="tab-content">
       <template v-if="activeTab === 0">
@@ -326,7 +330,8 @@ export default {
       tabs: ['チャットルーム', '情報登録', 'プロフィール写真'],
       activeTab: 0,
       mailDomain: "",
-      univName: ""
+      univName: "",
+      univWebPage: ""
     };
   },
   components: {
@@ -367,10 +372,11 @@ export default {
       this.getUniversityInfo(domain)
         .then((result) => {
           const universityName = result.universityName;
-          const universityLogo = result.universityLogo;
+          const universityWeb = result.universityWeb;
           console.log("ううううう"+universityName)
-          console.log("ええ"+universityLogo+"けけ");
+          console.log("ええ"+universityWeb+"けけ");
           this.univName=universityName;
+          this.univWebPage=universityWeb
         })
         .catch((error) => {
           console.error(error);
@@ -419,21 +425,10 @@ export default {
       
       if (data.length > 0) {
         const universityName = data[0].name;
-        const universityLogoUrl = data[0].logo;
-        let universityLogo = "";
+        const universityWeb = data[0].web_pages[0];
 
-        if (universityLogoUrl) {
-          try {
-            const logoResponse = await fetch(universityLogoUrl);
-            const logoBlob = await logoResponse.blob();
-            const logoBase64 = await this.blobToBase64(logoBlob);
-            universityLogo = `data:${logoResponse.headers.get("content-type")};base64,${logoBase64}`;
-          } catch (error) {
-            console.error(error);
-          }
-        }
         
-        return { universityName, universityLogo };
+        return { universityName, universityWeb };
       } else {
         throw new Error("No university found for the given domain");
       }
