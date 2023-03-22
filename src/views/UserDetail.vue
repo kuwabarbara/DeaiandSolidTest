@@ -24,6 +24,29 @@
             </li>
             </ul>
         <br>
+        <hr>
+
+          <table>
+            <thead style="padding: 20px;">
+              <tr>
+                <th></th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(classes, index) in timetable" :key="index">
+                <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
+                <td v-for="(classData, day) in classes" :key="day">
+                  <input type="text" :value="classData" @input="updateClassData(index, day, $event.target.value)">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
         
         <hr>
         <div>
@@ -53,7 +76,19 @@ export default {
       file: null,
       id :"",
       imageUrl: "",
-      user2: null
+      user2: null,
+      timetable: [
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" }
+      ],
     }
   },
   methods: {
@@ -98,6 +133,29 @@ export default {
         this.users = Object.values(snapshot.val());
       }
       );
+
+
+
+
+      // Firebase Realtime Databaseからデータを取得する
+      firebase.database().ref('timetables').child(uid).once('value')
+        .then((snapshot) => {
+          // 取得したデータをVue.jsのデータに代入する
+          const data = snapshot.val();
+          for (let i = 0; i < 10; i++) {
+            for (let day in data[i]) {
+              const index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
+              if (index >= 0) {
+                this.timetable[i][index] = data[i][day];
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
+
     },
   mounted() {
         firebase
