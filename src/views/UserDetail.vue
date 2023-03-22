@@ -19,6 +19,15 @@
             <ul>
             <li>
                 <h2>{{ user2.name }}</h2>
+                <hr>
+                  <div>
+                    <v-card>
+                      <v-img :src="imageUrl" height="300" width="400" :contain="true" />
+                      <!-- <img :src="imageUrl" alt="ユーザーのプロフィール画像"> -->
+                    </v-card>
+                  </div>
+                <hr>
+
                 <p>性別: {{ user2.gender }}</p>
                 <p>ステータスコメント: {{ user2.status }}</p>
             </li>
@@ -27,7 +36,7 @@
         <hr>
 
           <table>
-            <thead style="padding: 20px;">
+            <thead>
               <tr>
                 <th></th>
                 <th>Mon</th>
@@ -47,16 +56,29 @@
             </tbody>
           </table>
 
+        <hr>
+
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(classes, index) in timetable2" :key="index">
+                <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
+                <td v-for="(classData, day) in classes" :key="day">
+                  <input type="text" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
+                </td>
+              </tr>
+            </tbody>
+          </table>
         
-        <hr>
-        <div>
-          <v-card>
-            <v-img :src="imageUrl" height="300" width="400" :contain="true" />
-            <!-- <img :src="imageUrl" alt="ユーザーのプロフィール画像"> -->
-            プロフィール写真
-          </v-card>
-        </div>
-        <hr>
     </div>
 </template>
 
@@ -77,7 +99,19 @@ export default {
       id :"",
       imageUrl: "",
       user2: null,
-      timetable: [
+      timetable: [   //詳細画面のユーザーの時間割
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" }
+      ],
+      timetable2: [   //ログイン中のユーザーの時間割
         { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
         { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
         { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
@@ -138,7 +172,7 @@ export default {
 
 
       // Firebase Realtime Databaseからデータを取得する
-      firebase.database().ref('timetables').child(uid).once('value')
+      firebase.database().ref('timetables').child(userId).once('value')
         .then((snapshot) => {
           // 取得したデータをVue.jsのデータに代入する
           const data = snapshot.val();
@@ -155,6 +189,28 @@ export default {
           console.error(error);
         });
 
+        // 現在認証されているユーザーのUIDを取得する
+        const current_uid = firebase.auth().currentUser.uid;
+
+      // Firebase Realtime Databaseからデータを取得する
+      firebase.database().ref('timetables').child(current_uid).once('value')
+        .then((snapshot) => {
+          // 取得したデータをVue.jsのデータに代入する
+          const data = snapshot.val();
+          for (let i = 0; i < 10; i++) {
+            for (let day in data[i]) {
+              const index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
+              if (index >= 0) {
+                this.timetable2[i][index] = data[i][day];
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
+        console.log("今ログインしてるのは"+current_uid)
 
     },
   mounted() {
