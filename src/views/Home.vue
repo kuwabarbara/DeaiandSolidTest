@@ -355,6 +355,18 @@ export default {
     //Avator
   },
   created(){
+    this.timetable = [
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" }
+      ]
     // 現在認証されているユーザーのUIDを取得する
     const uid = firebase.auth().currentUser.uid;
 
@@ -423,7 +435,7 @@ export default {
       const db = firebase.database()
 
       // Firebase Realtime Databaseに時間割データを保存する
-      db.ref(`timetables/${user_id}`).set(this.timetable)
+      db.ref(`timetables/${user_id}`).update(this.timetable)
         .then(() => console.log('Timetable saved!'))
         .catch(error => console.error('Error saving timetable:', error));
     },

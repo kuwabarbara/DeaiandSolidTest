@@ -186,27 +186,31 @@ export default {
         });
 
       // 現在認証されているユーザーのUIDを取得する
-      const current_uid = firebase.auth().currentUser.uid;
-
-      // Firebase Realtime Databaseからデータを取得する
-      firebase.database().ref('timetables').child(current_uid).once('value')
-        .then((snapshot) => {
-          // 取得したデータをVue.jsのデータに代入する
-          const data = snapshot.val();
-          for (let i = 0; i < 10; i++) {
-            for (let day in data[i]) {
-              const index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
-              if (index >= 0) {
-                this.timetable2[i][index] = data[i][day];
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          // ユーザーが認証されている場合は、データを取得する
+          const current_uid = user.uid;
+          firebase.database().ref('timetables').child(current_uid).once('value')
+            .then((snapshot) => {
+              // データの取得に成功した場合は、Vue.jsのデータに代入する
+              const data = snapshot.val();
+              for (let i = 0; i < 10; i++) {
+                for (let day in data[i]) {
+                  const index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
+                  if (index >= 0) {
+                    this.timetable2[i][index] = data[i][day];
+                  }
+                }
               }
-            }
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-
-        console.log("今ログインしてるのは"+current_uid)
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        } else {
+          // ユーザーが認証されていない場合は、何もしない
+          console.log('no user logged in');
+        }
+      });
 
     },
   mounted() {
