@@ -21,6 +21,8 @@
         <br>
 
         <br>
+        <v-label>同じ授業は赤、相手が授業があるときは白、たがいに何もないときは青を表示してるよ！</v-label> <br>
+
 
         <v-label>{{user2.name}}の時間割</v-label>
 

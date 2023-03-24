@@ -149,28 +149,28 @@
             <v-container class="conversation-container">
               <v-card class="conversation-card">
                 <div class="ml-2">
-                  {{kaiwa}}
+                  候補5 {{kaiwa}}
                 </div>
               </v-card>
               <v-card class="conversation-card">
                 <div class="ml-2">
-                  {{kaiwa2}}
+                  候補4 {{kaiwa2}}
                 </div>
               </v-card>
 
               <v-card class="conversation-card">
                 <div class="ml-2">
-                  {{kaiwa3}}
+                  候補3 {{kaiwa3}}
                 </div>
               </v-card>
               <v-card class="conversation-card">
                 <div class="ml-2">
-                  {{kaiwa4}}
+                  候補2 {{kaiwa4}}
                 </div>
               </v-card>
               <v-card class="conversation-card">
                 <div class="ml-2">
-                  {{kaiwa5}}
+                  候補1 {{kaiwa5}}
                 </div>
               </v-card>
 
