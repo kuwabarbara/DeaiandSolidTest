@@ -33,12 +33,15 @@
                 <th>Wed</th>
                 <th>Thu</th>
                 <th>Fri</th>
+                <th>Sat</th>
+                <th>Sun</th>
+
               </tr>
             </thead>
             <tbody>
               <tr v-for="(classes, index) in timetable" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
-                <td v-for="(classData, day) in classes" :key="day" :class="{ 'blue': !classData && !timetable2[index][day] }">
+                <td v-for="(classData, day) in classes" :key="day" :class="{  'blue': !classData && !timetable2[index][day], 'red': classData === timetable2[index][day] }">
                   <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
@@ -57,12 +60,15 @@
                 <th>Wed</th>
                 <th>Thu</th>
                 <th>Fri</th>
+                <th>Sat</th>
+                <th>Sun</th>
+
               </tr>
             </thead>
             <tbody>
               <tr v-for="(classes, index) in timetable2" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
-                <td v-for="(classData, day) in classes" :key="day" :class="{ 'blue': !classData && !timetable[index][day] }">
+                <td v-for="(classData, day) in classes" :key="day" :class="{ 'blue': !classData && !timetable[index][day], 'red': classData === timetable[index][day]}">
                   <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
@@ -128,6 +134,7 @@ export default {
     }
   },
   methods: {
+    
   },
   created() {
     const userId = this.$route.params.id
