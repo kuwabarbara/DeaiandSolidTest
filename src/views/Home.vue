@@ -435,9 +435,12 @@ export default {
       const db = firebase.database()
 
       // Firebase Realtime Databaseに時間割データを保存する
-      db.ref(`timetables/${user_id}`).update(this.timetable)
+      db.ref(`timetables/${user_id}`).set(this.timetable)
         .then(() => console.log('Timetable saved!'))
         .catch(error => console.error('Error saving timetable:', error));
+
+
+      
     },
     async getUniversityInfo(domain) {
       const url = `http://universities.hipolabs.com/search?domain=${domain}`;

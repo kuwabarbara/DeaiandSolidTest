@@ -38,7 +38,7 @@
             <tbody>
               <tr v-for="(classes, index) in timetable" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
-                <td v-for="(classData, day) in classes" :key="day" :class="{ 'blue': !classData && !timetable2[index][day] }">
+                <td v-for="(classData, day) in classes" :key="day" :class="{ 'white': !classData, 'blue': timetable[index][day], 'red': timetable[index][day] && timetable[index][day] === timetable2[index][day] }">
                   <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
@@ -62,7 +62,7 @@
             <tbody>
               <tr v-for="(classes, index) in timetable2" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
-                <td v-for="(classData, day) in classes" :key="day" :class="{ 'blue': !classData && !timetable[index][day] }">
+                <td v-for="(classData, day) in classes" :key="day" :class="{ 'white': !classData, 'blue': timetable2[index][day], 'red': timetable2[index][day] && timetable2[index][day] === timetable[index][day] }">
                   <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
@@ -75,6 +75,12 @@
 <style>
   .blue {
       background-color: blue;
+  }
+  .white {
+      background-color: white;
+  }
+  .red {
+      background-color: red;
   }
 </style>
 
