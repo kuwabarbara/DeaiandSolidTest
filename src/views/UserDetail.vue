@@ -38,7 +38,7 @@
             <tbody>
               <tr v-for="(classes, index) in timetable" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
-                <td v-for="(classData, day) in classes" :key="day">
+                <td v-for="(classData, day) in classes" :key="day" :class="{ 'blue': !classData && !timetable2[index][day] }">
                   <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
@@ -62,7 +62,7 @@
             <tbody>
               <tr v-for="(classes, index) in timetable2" :key="index">
                 <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
-                <td v-for="(classData, day) in classes" :key="day">
+                <td v-for="(classData, day) in classes" :key="day" :class="{ 'blue': !classData && !timetable[index][day] }">
                   <input type="text" style="text-align: center;" readonly :value="classData" @input="updateClassData(index, day, $event.target.value)">
                 </td>
               </tr>
@@ -71,6 +71,12 @@
         
     </div>
 </template>
+
+<style>
+  .blue {
+      background-color: blue;
+  }
+</style>
 
 
 
@@ -179,8 +185,8 @@ export default {
           console.error(error);
         });
 
-        // 現在認証されているユーザーのUIDを取得する
-        const current_uid = firebase.auth().currentUser.uid;
+      // 現在認証されているユーザーのUIDを取得する
+      const current_uid = firebase.auth().currentUser.uid;
 
       // Firebase Realtime Databaseからデータを取得する
       firebase.database().ref('timetables').child(current_uid).once('value')

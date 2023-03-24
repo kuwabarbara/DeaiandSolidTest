@@ -7,7 +7,7 @@
       </div>
     </v-app-bar>
 
-    <b>{{ user.name }}がログイン中</b>    
+    <b>{{ user.name }}がログイン中</b>
 
     <div class="tab-header">
       <div
@@ -21,20 +21,30 @@
       </div>
     </div>
 
-    <b>私について</b><br>
-    <v-img 
-        width="120"
-        height="80"
-        :src=user.img_url
-        :contain="true"></v-img> <br>
-    <span class="opacity-50" @click="directMessage(user)">名前：{{ user.name }}</span><br>
-    <span>性別：{{user.gender}}</span><br>
-    <span>メールアドレス：{{user.email}}</span><br>
-    <span>ステータスコメント：{{user.status}}</span><br>
+    <div class="container">
+      <v-spacer/>
+      <v-spacer/>
 
-    <span> {{univName}}の学生です </span>
+      <div>
+        <b>私について</b><br>
+        <v-img 
+            width="120"
+            height="80"
+            :src=user.img_url
+            :contain="true"></v-img> <br>
+        <span class="opacity-50" @click="directMessage(user)">名前：{{ user.name }}</span><br>
+        <span>性別：{{user.gender}}</span><br>
+        <span>メールアドレス：{{user.email}}</span><br>
+        <span>ステータスコメント：{{user.status}}</span><br>
 
-    <v-spacer/>
+        <span> {{univName}}の学生です </span>
+      </div>
+      <v-spacer/>
+        <v-row justify="center">
+          <v-img class="rounded-circle" src="/image/無題.png" height="300" width="300" :contain="true" />
+        </v-row>
+      <v-spacer/>
+    </div>
 
     <div class="tab-content">
       <template v-if="activeTab === 0">
@@ -273,7 +283,9 @@
     background-color: gray; /* アイテムの背景色を指定 */
     margin-right: 10px; /* アイテムの間に余白を指定 */
   }
-  
+  .rounded-circle {
+  border-radius: 100%;
+  }
 </style>
 
 
