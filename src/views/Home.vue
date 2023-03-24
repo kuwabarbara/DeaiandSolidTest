@@ -152,6 +152,28 @@
                   {{kaiwa}}
                 </div>
               </v-card>
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  {{kaiwa2}}
+                </div>
+              </v-card>
+
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  {{kaiwa3}}
+                </div>
+              </v-card>
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  {{kaiwa4}}
+                </div>
+              </v-card>
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  {{kaiwa5}}
+                </div>
+              </v-card>
+
             </v-container>
         </div>
 
@@ -323,6 +345,11 @@ export default {
         { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" }
       ],
       kaiwa: "",
+      kaiwa2: "",
+      kaiwa3: "",
+      kaiwa4: "",
+      kaiwa5: "",
+
       user: '',
       users: [],
       channel_name: '',
@@ -473,6 +500,14 @@ export default {
         };
       });
     },
+    getStringAfterColon(str) {
+      const index = str.indexOf(':');
+      if (index === -1) {
+        return str;
+      }
+      return str.substring(index + 1);
+    },
+
     generateMessage(){
       var kaiwa=""
       for(var i=0; i<this.messages.length; i++){
@@ -483,27 +518,37 @@ export default {
 
       // GPT-3による返信の生成
       fetch("https://api.openai.com/v1/engines/davinci/completions", {
-      method: "POST",
-      headers: {
+        method: "POST",
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
+        },
+        body: JSON.stringify({
           prompt: kaiwa,
-          max_tokens: 50
-      })
+          max_tokens: 50,
+          n: 5, // 生成される返信の数
+          temperature: 0.7 // 返信の多様性
+        })
       })
       .then(response => response.json())
       .then(data => {
-      const reply = data.choices[0].text.trim();
-      console.log("あああ"+reply+"あああ");
-      this.kaiwa=reply.split("\n")[0]
+        const choices = data.choices;
+        const replies = [];
+        for(let i=0; i<choices.length; i++){
+          const reply = choices[i].text.trim();
+          replies.push(reply.split("\n")[0]);
+        }
+        console.log(replies); // 複数の候補を表示
+        this.kaiwa = this.getStringAfterColon(replies[0]); // 1番目の候補を使用する
+        this.kaiwa2 = this.getStringAfterColon(replies[1]); // 1番目の候補を使用する
+        this.kaiwa3 = this.getStringAfterColon(replies[2]); // 1番目の候補を使用する
+        this.kaiwa4 = this.getStringAfterColon(replies[3]); // 1番目の候補を使用する
+        this.kaiwa5 = this.getStringAfterColon(replies[4]); // 1番目の候補を使用する
+
       })
       .catch(error => {
-      console.error(error);
+        console.error(error);
       });
-
-
     },
     extractDomain(email) {
       // '@'の位置を探す
