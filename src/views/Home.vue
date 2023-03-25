@@ -37,7 +37,7 @@
         <span>メールアドレス：{{user.email}}</span><br>
         <span>ステータスコメント：{{user.status}}</span><br>
 
-        <span> {{univName}}の学生です </span>
+        <span> {{univName}} 学生です </span>
       </div>
       <v-spacer/>
         <v-row justify="center">
@@ -48,7 +48,7 @@
 
     <div class="tab-content">
       <template v-if="activeTab === 0">
-        <h1>ユーザー一覧</h1>
+        <h1>  {{univName}}コミュニティのユーザー一覧</h1>
         <div class="container">
           <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
             <div v-if="useruser.gender === user.gender">
