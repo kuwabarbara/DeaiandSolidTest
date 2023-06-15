@@ -89,6 +89,7 @@
           <div>
             <span style="font-weight: bold">ID: </span>
             <input type="text" v-model="receiverId" title="Input the ID from receive.html">
+            <input type="text" v-model="inputMessage" title="Input the message to send">
             <button @click="connect">Connect</button>
           </div>
 
@@ -360,6 +361,7 @@ export default {
       peer: null,
       conn: null,
       msgContent: 'kuwaxkuwax',
+      inputMessage: '',
 
       timetable: [
         { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
@@ -400,6 +402,7 @@ export default {
       mailDomain: "",
       univName: "",
       univWebPage: ""
+      
     };
   },
   components: {
@@ -557,7 +560,8 @@ export default {
       this.conn.on('open', () => {
         console.log('Connected to: ' + this.conn.peer);
         this.statusMessage = 'Connected';
-        this.conn.send(this.msgContent);
+        //this.conn.send(this.msgContent);
+        this.conn.send(this.inputMessage); // テキストボックスの内容を送信する
       });
     },
 
