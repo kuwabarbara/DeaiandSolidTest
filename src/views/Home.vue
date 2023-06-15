@@ -76,10 +76,30 @@
         </div>
 
 
+
+
+
         <hr>
         <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
         <hr>
         <b>チャット</b>
+
+        <div>
+
+          <div>
+            <span style="font-weight: bold">ID: </span>
+            <input type="text" v-model="receiverId" title="Input the ID from receive.html">
+            <button @click="connect">Connect</button>
+          </div>
+
+          <h2>Receiver</h2>
+          <div id="status">{{ statusMessage }}</div>
+        </div>
+
+
+
+
+        
         <hr>
             <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
               <!-- <Avator :user="message.user" /> -->
@@ -318,6 +338,8 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import 'firebase/compat/database';
+
+import Peer from 'peerjs';
 //import Notification from "../components/icons/Notification";
 //import Search from "../components/icons/Search";
 //import Star from "../components/icons/Star";
@@ -332,6 +354,13 @@ export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
   data() {
     return {
+      receiverId: '',
+      statusMessage: 'Waiting for connection...',
+      lastPeerId: null,
+      peer: null,
+      conn: null,
+      msgContent: 'kuwaxkuwax',
+
       timetable: [
         { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
         { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
@@ -457,6 +486,84 @@ export default {
 
   },
   methods: {
+    initialize() {
+      this.peer = new Peer(null, { debug: 2 });
+
+      this.peer.on('open', (id) => {
+        if (this.peer.id === null) {
+          console.log('Received null id from peer open');
+          this.peer.id = this.lastPeerId;
+        } else {
+          this.lastPeerId = this.peer.id;
+        }
+        console.log('ID: ' + this.peer.id);
+        console.log('aaa: ' + id);
+
+      });
+
+      this.peer.on('connection', (c) => {
+        if (this.conn && this.conn.open) {
+          c.on('open', () => {
+            c.send('Already connected to another client');
+            setTimeout(() => c.close(), 500);
+          });
+          return;
+        }
+
+        this.conn = c;
+        console.log('Connected to: ' + this.conn.peer);
+        this.statusMessage = 'Connected';
+        this.ready();
+      });
+
+      this.peer.on('disconnected', () => {
+        this.statusMessage = 'Connection lost. Please reconnect';
+        console.log('Connection lost. Please reconnect');
+        this.peer.id = this.lastPeerId;
+        this.peer._lastServerId = this.lastPeerId;
+        this.peer.reconnect();
+      });
+
+      this.peer.on('close', () => {
+        this.conn = null;
+        this.statusMessage = 'Connection destroyed. Please refresh';
+        console.log('Connection destroyed');
+      });
+
+      this.peer.on('error', (err) => {
+        console.log(err);
+        alert('' + err);
+      });
+    },
+
+    ready() {
+      this.conn.on('data', (data) => {
+        console.log('Data received:');
+        console.log(data);
+      });
+
+      this.conn.on('close', () => {
+        this.conn = null;
+      });
+    },
+
+    join() {
+      if (this.conn) {
+        this.conn.close();
+      }
+
+      this.conn = this.peer.connect(this.receiverId, { reliable: true });
+
+      this.conn.on('open', () => {
+        console.log('Connected to: ' + this.conn.peer);
+        this.statusMessage = 'Connected';
+        this.conn.send(this.msgContent);
+      });
+    },
+
+    connect() {
+      this.join();
+    },
     updateClassData(index, day, value) {
       this.timetable[index][day] = value;
     },
@@ -706,6 +813,17 @@ export default {
     }
   },
   mounted() {
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js';
+    //script.onload = () => {
+      //this.connectButton.disabled = false;
+    //};
+    document.head.appendChild(script);
+
+    this.initialize();
+
+
+
     this.user = firebase.auth().currentUser;
 
     firebase
