@@ -93,6 +93,8 @@
             <button @click="connect">Connect</button>
           </div>
 
+          あいてからのメッセージは{{ p2pmsg }}
+
           <h2>Receiver</h2>
           <div id="status">{{ statusMessage }}</div>
         </div>
@@ -381,6 +383,8 @@ export default {
       kaiwa4: "",
       kaiwa5: "",
 
+      p2pmsg: "",
+
       user: '',
       users: [],
       channel_name: '',
@@ -561,6 +565,7 @@ export default {
       this.conn.on('data', (data) => {
         console.log('Data received:');
         console.log(data);
+        this.p2pmsg=data;
       });
 
       this.conn.on('close', () => {
