@@ -542,7 +542,7 @@ export default {
         console.log('Connection lost. Please reconnect');
         this.peer.id = this.lastPeerId;
         this.peer._lastServerId = this.lastPeerId;
-        this.peer.reconnect();
+        //this.peer.reconnect();
       });
 
       this.peer.on('close', () => {
@@ -808,6 +808,10 @@ export default {
       this.message = "";
     },
     directMessage(user) {
+      console.log(user.peerid)
+      this.receiverId= user.peerid;
+
+
       this.messages = [];
 
       this.user.uid > user.user_id
