@@ -502,6 +502,24 @@ export default {
         console.log('ID: ' + this.peer.id);
         console.log('aaa: ' + id);
 
+
+        var uid = firebase.auth().currentUser.uid;
+        var peerid = this.peer.id;
+
+        // ユーザーのデータへの参照を取得
+        var userRef = firebase.database().ref('users/' + uid);
+
+        // 既存のデータを読み取る
+        userRef.once('value', function(snapshot) {
+            var userData = snapshot.val();
+
+            // 新しいデータを追加
+            userData.peerid = peerid;
+
+            // 更新したデータを書き込む
+            userRef.set(userData);
+        });
+
       });
 
       this.peer.on('connection', (c) => {
@@ -824,11 +842,10 @@ export default {
     //};
     document.head.appendChild(script);
 
-    this.initialize();
-
-
-
     this.user = firebase.auth().currentUser;
+
+    
+    this.initialize();
 
     firebase
       .database()
@@ -836,6 +853,11 @@ export default {
       .on("child_added", snapshot => {
         this.users.push(snapshot.val());
       });
+
+
+      console.log(this.users);
+
+
 
   },
   beforeDestroy() {
