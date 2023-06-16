@@ -93,7 +93,7 @@
             <button @click="connect">Connect</button>
           </div>
 
-          あいてからのメッセージは{{ p2pmsg }}
+          メッセージの内容: {{ p2pmsg }}
 
           <h2>Receiver</h2>
           <div id="status">{{ statusMessage }}</div>
@@ -584,7 +584,7 @@ export default {
         console.log('Connected to: ' + this.conn.peer);
         this.statusMessage = 'Connected';
         //this.conn.send(this.msgContent);
-        this.conn.send(this.inputMessage); // テキストボックスの内容を送信する
+        this.conn.send(this.user.name+"さんからのメッセージ： "+ this.inputMessage); // テキストボックスの内容を送信する
       });
     },
 
