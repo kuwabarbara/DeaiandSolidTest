@@ -87,13 +87,27 @@
         <div>
 
           <div>
-            <span style="font-weight: bold">ID: </span>
-            <input type="text" v-model="receiverId" title="Input the ID from receive.html">
-            <input type="text" v-model="inputMessage" title="Input the message to send">
-            <button @click="connect">Connect</button>
+            <span style="font-weight: bold">ここにメッセージを書く: </span>
+            <!-- <input type="text" v-model="receiverId" title="Input the ID from receive.html"> -->
+            <textarea autofocus
+                rows="5" cols="50"
+                class="w-full pt-4 pl-8 outline-none"
+                :placeholder="placeholder"
+                v-model="inputMessage"
+              ></textarea>
+            <v-btn @click="connect">送信</v-btn>
           </div>
 
-          メッセージの内容: {{ p2pmsg }}
+          <div class="text-left">
+            <v-container class="conversation-container">
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ p2pmsg }}</v-label>
+                </div>
+              </v-card>
+            </v-container>
+          </div>
+
 
           <h2>Receiver</h2>
           <div id="status">{{ statusMessage }}</div>
@@ -102,10 +116,9 @@
 
 
 
-        
+<!--        
         <hr>
             <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
-              <!-- <Avator :user="message.user" /> -->
               <div v-if="message.user===user.name">
                 <div class="text-left">
                   <v-container class="conversation-container">
@@ -134,7 +147,8 @@
               </div>
             </div>
         <hr>
-
+      -->
+      <!--
         <main class="overflow-y-scroll flex-grow">
           <div class="flex flex-col ml-6 h-full">
             <div class="flex-grow overflow-y-scroll">              
@@ -155,6 +169,7 @@
               </div>
           </div>
         </main> 
+      -->
 
 
         <div class="flex-grow overflow-y-scroll">
