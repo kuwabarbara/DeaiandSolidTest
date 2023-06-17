@@ -538,6 +538,9 @@ export default {
         this.conn = c;
         console.log('Connected to: ' + this.conn.peer);
         this.statusMessage = 'Connected';
+
+        this.receiverId=this.conn.peer;
+
         this.ready();
       });
 
@@ -578,9 +581,12 @@ export default {
         this.conn.close();
       }
 
+      
+
       this.conn = this.peer.connect(this.receiverId, { reliable: true });
 
       this.conn.on('open', () => {
+        
         console.log('Connected to: ' + this.conn.peer);
         this.statusMessage = 'Connected';
         //this.conn.send(this.msgContent);
@@ -813,7 +819,7 @@ export default {
       this.message = "";
     },
     directMessage(user) {
-      console.log(user.peerid)
+      console.log("directmessageをクリック"+user.peerid)
       this.receiverId= user.peerid;
 
 

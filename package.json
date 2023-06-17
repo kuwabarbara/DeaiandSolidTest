@@ -10,8 +10,9 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "dotenv": "^16.0.3",
-    "firebase": "^9.18.0",
+    "firebase": "^9.22.2",
     "module": "^1.2.5",
+    "peerjs": "^1.4.7",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vuetify": "^2.6.0",
