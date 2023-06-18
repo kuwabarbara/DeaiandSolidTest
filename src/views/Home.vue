@@ -68,6 +68,12 @@
                   <div v-else>
                     性別なし
                   </div>
+                  <div v-if="useruser.peerid=='null'">
+                    オフライン
+                  </div>
+                  <div v-else>
+                    オンライン
+                  </div>
                 </div> 
               <v-btn @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</v-btn>
 
