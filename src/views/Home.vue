@@ -888,6 +888,11 @@ export default {
       console.log(this.users);
 
 
+      const db = firebase.database();
+      const isOnlineRef = db.ref(`users/${this.user.uid}/peerid`);
+      isOnlineRef.onDisconnect().set("null");
+
+
 
   },
   beforeDestroy() {
