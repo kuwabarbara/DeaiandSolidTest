@@ -132,14 +132,7 @@
         
 
         <div>
-          <span style="font-weight: bold">ここにidを書く: </span>
-          <textarea autofocus
-              rows="5" cols="50"
-              class="w-full pt-4 pl-8 outline-none"
-              :placeholder="placeholder"
-              v-model="friendId"
-            ></textarea>
-          <v-btn @click="makeCall">送信</v-btn>
+          <v-btn @click="makeCall">電話ボタン</v-btn>
         </div>
 
 
@@ -657,7 +650,7 @@ export default {
         this.localVideo.srcObject = stream;
         this.localStream = stream;
 
-        const call = this.peer.call(this.friendId, stream);
+        const call = this.peer.call(this.receiverId, stream);
         call.on("stream", (remoteStream) => {
           this.remoteVideo.srcObject = remoteStream;
         });
