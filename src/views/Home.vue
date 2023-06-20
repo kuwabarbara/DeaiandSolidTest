@@ -115,28 +115,26 @@
           </div>
 
 
-          <h2>Receiver</h2>
           <div id="status">{{ statusMessage }}</div>
         </div>
-
-
-        <body>
-          <div id="wrapper">
-            <video id="local-video" width="400" height="300" autoplay muted></video>
-            <video id="remote-video" width="400" height="300" autoplay></video>
-            <div class="clear"></div>
-          </div>
-        </body>
-
-
-        
 
         <div>
           <v-btn @click="makeCall">電話ボタン</v-btn>
         </div>
 
+        <body>
+          <div id="wrapper">
+            自分の画面
+            <video id="local-video" width="400" height="300" autoplay muted></video>
+            <div class="clear"></div>
+          </div>
+          <div id="wrapper">
+            相手の画面
+            <video id="remote-video" width="400" height="300" autoplay></video>
+            <div class="clear"></div>
+          </div>
 
-
+        </body>
 
 <!--        
         <hr>
@@ -633,6 +631,7 @@ export default {
           getUserMedia(this.MediaConfigurtion, (stream) => {
             this.localVideo.srcObject = stream;
             this.locaStream = stream;
+            
             call.answer(stream);
             call.on("stream", (remoteStream) => {
               this.remoteVideo.srcObject = remoteStream;
@@ -657,6 +656,20 @@ export default {
       });
     },
 
+
+    createAvatarStream(originalStream) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const videoTrack = originalStream.getVideoTracks()[0];
+
+        canvas.width = videoTrack.width;
+        canvas.height = videoTrack.height;
+        context.drawImage(this.localVideo, 0, 0, canvas.width, canvas.height);
+        context.filter = 'blur(10px)'; // モザイク化
+        const avatarStream = canvas.captureStream();
+
+        return avatarStream;
+    },
 
 
 
@@ -746,9 +759,8 @@ export default {
 
     generateMessage(){
       var kaiwa=""
-      for(var i=0; i<this.messages.length; i++){
-        kaiwa+=this.messages[i].user+": "+this.messages[i].content+"\n"
-      }
+
+      kaiwa+=this.p2pmsg
 
       var apiKey=process.env.openAI
 
