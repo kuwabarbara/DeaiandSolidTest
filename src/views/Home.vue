@@ -93,7 +93,6 @@
         <div>
 
           <div>
-            <span style="font-weight: bold">ここにメッセージを書く: </span>
             <!-- <input type="text" v-model="receiverId" title="Input the ID from receive.html"> -->
             <textarea autofocus
                 rows="5" cols="50"
@@ -369,6 +368,22 @@
   .rounded-circle {
   border-radius: 100%;
   }
+
+  .animated-text {
+  animation: animateText 0.5s linear forwards;
+  opacity: 0;
+}
+
+@keyframes animateText {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 </style>
 
 
@@ -677,7 +692,21 @@ export default {
       this.conn.on('data', (data) => {
         console.log('Data received:');
         console.log(data);
-        this.p2pmsg=data;
+
+        let currentIndex = 0;
+        const interval = 100; // 各文字の表示間隔（ミリ秒）
+
+        const animate = () => {
+          this.p2pmsg += data[currentIndex];
+          currentIndex++;
+
+          if (currentIndex < data.length) {
+            setTimeout(animate, interval);
+          }
+        };
+
+        setTimeout(animate, interval);
+
       });
 
       this.conn.on('close', () => {
