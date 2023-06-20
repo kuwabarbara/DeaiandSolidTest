@@ -120,6 +120,29 @@
         </div>
 
 
+        <body>
+          <div id="wrapper">
+            <video id="local-video" width="400" height="300" autoplay muted></video>
+            <video id="remote-video" width="400" height="300" autoplay></video>
+            <div class="clear"></div>
+          </div>
+        </body>
+
+
+        
+
+        <div>
+          <span style="font-weight: bold">ここにidを書く: </span>
+          <textarea autofocus
+              rows="5" cols="50"
+              class="w-full pt-4 pl-8 outline-none"
+              :placeholder="placeholder"
+              v-model="friendId"
+            ></textarea>
+          <v-btn @click="makeCall">送信</v-btn>
+        </div>
+
+
 
 
 <!--        
@@ -378,6 +401,8 @@ export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
   data() {
     return {
+      friendId: '',
+
       receiverId: '',
       statusMessage: 'Waiting for connection...',
       lastPeerId: null,
@@ -426,7 +451,20 @@ export default {
       activeTab: 0,
       mailDomain: "",
       univName: "",
-      univWebPage: ""
+      univWebPage: "",
+
+
+      localVideo: "",
+      remoteVideo: "",
+
+      // Video and audio are enabled for this call.
+
+      localStream: "",
+      MediaConfigurtion: {
+        audio: true,
+        video: true,
+      },
+
       
     };
   },
@@ -515,6 +553,9 @@ export default {
   },
   methods: {
     initialize() {
+      this.localVideo= document.getElementById("local-video");
+      this.remoteVideo= document.getElementById("remote-video");
+
       this.peer = new Peer(null, { debug: 2 });
 
       this.peer.on('open', (id) => {
@@ -563,6 +604,7 @@ export default {
         this.receiverId=this.conn.peer;
 
         this.ready();
+
       });
 
       this.peer.on('disconnected', () => {
@@ -583,7 +625,47 @@ export default {
         console.log(err);
         alert('' + err);
       });
+
+      this.listenCall();
+
     },
+
+    
+    listenCall() {
+        var getUserMedia =
+          navigator.getUserMedia ||
+          navigator.webkitGetUserMedia ||
+          navigator.mozGetUserMedia;
+        this.peer.on("call", (call) => {
+          getUserMedia(this.MediaConfigurtion, (stream) => {
+            this.localVideo.srcObject = stream;
+            this.locaStream = stream;
+            call.answer(stream);
+            call.on("stream", (remoteStream) => {
+              this.remoteVideo.srcObject = remoteStream;
+            });
+          });
+        });
+      },
+
+      makeCall() {
+      var getUserMedia =
+        navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia;
+      getUserMedia(this.MediaConfigurtion, (stream) => {
+        this.localVideo.srcObject = stream;
+        this.localStream = stream;
+
+        const call = this.peer.call(this.friendId, stream);
+        call.on("stream", (remoteStream) => {
+          this.remoteVideo.srcObject = remoteStream;
+        });
+      });
+    },
+
+
+
 
     ready() {
       this.conn.on('data', (data) => {
