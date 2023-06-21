@@ -122,74 +122,22 @@
         </div>
 
         <body>
-          <div id="wrapper">
-            自分の画面
-            <video id="local-video" width="400" height="300" autoplay muted></video>
-            <div class="clear"></div>
+          <div class="frame">
+            <div id="wrapper">
+              <video id="local-video" width="400" height="300" autoplay muted></video>
+              <div class="label">自分の画面</div>
+              <div class="clear"></div>
+            </div>
           </div>
-          <div id="wrapper">
-            相手の画面
-            <video id="remote-video" width="400" height="300" autoplay></video>
-            <div class="clear"></div>
+          <div class="frame">
+            <div id="wrapper">
+              <video id="remote-video" width="400" height="300" autoplay></video>
+              <div class="label">相手の画面</div>
+              <div class="clear"></div>
+            </div>
           </div>
 
         </body>
-
-<!--        
-        <hr>
-            <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
-              <div v-if="message.user===user.name">
-                <div class="text-left">
-                  <v-container class="conversation-container">
-                  <v-card class="conversation-card">
-                    <div class="ml-2">
-                      <div class="font-bold">{{ message.user }}</div>
-                      <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
-                    </div>
-                  </v-card>
-                  </v-container>
-                </div>
-              </div>
-              <div v-else>
-                  <div class="text-right">
-                    <v-container class="conversation-container">
-                      <v-card class="conversation-card right-align">
-                        <div class="ml-2">
-                          <v-card-text>
-                            <div class="font-bold">{{ message.user }}</div>
-                            <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
-                          </v-card-text>
-                        </div>
-                        </v-card>
-                    </v-container>
-                  </div>
-              </div>
-            </div>
-        <hr>
-      -->
-      <!--
-        <main class="overflow-y-scroll flex-grow">
-          <div class="flex flex-col ml-6 h-full">
-            <div class="flex-grow overflow-y-scroll">              
-            </div>
-            <div class="border border-gray-900 rounded mb-4">
-              <textarea autofocus
-                rows="5" cols="50"
-                class="w-full pt-4 pl-8 outline-none"
-                :placeholder="placeholder"
-                v-model="message"
-              ></textarea>
-                <div class="bg-gray-100 p-2">
-                  <v-btn
-                    class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
-                    @click="sendMessage"
-                  >送信</v-btn>
-                </div>
-              </div>
-          </div>
-        </main> 
-      -->
-
 
         <div class="flex-grow overflow-y-scroll">
 
@@ -314,6 +262,29 @@
 </template>
 
 <style>
+  .frame {
+    display: inline-block;
+    text-align: center; /* ラベルを中央揃えにするために追加 */
+    margin-bottom: 20px; /* 要素間の間隔を調整するために追加 */
+  }
+
+  .video-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .video-wrapper video {
+    width: 400px;
+    height: 300px;
+    border: 10px solid #000;
+    padding: 20px;
+  }
+
+  .label {
+    text-align: center;
+    margin-top: 10px; /* ラベルの上部マージンを追加 */
+  }
+
   .tab span {
     display: inline-block;
     padding: 5px 10px;
