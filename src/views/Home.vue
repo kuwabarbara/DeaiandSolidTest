@@ -107,7 +107,7 @@
             <v-container class="conversation-container">
               <v-card class="conversation-card">
                 <div class="ml-2">
-                  <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ p2pmsg }}</v-label>
+                  <span v-html="p2pmsg.replace(/\n/g, '<br>')"></span>
                 </div>
               </v-card>
             </v-container>
@@ -699,7 +699,7 @@ export default {
         console.log('Connected to: ' + this.conn.peer);
         this.statusMessage = 'Connected';
         //this.conn.send(this.msgContent);
-        this.conn.send(this.user.name+"さんからのメッセージ： "+ this.inputMessage); // テキストボックスの内容を送信する
+        this.conn.send(this.user.name+"さんからのメッセージ： "+ this.inputMessage+"\n"); // テキストボックスの内容を送信する
       });
     },
 
