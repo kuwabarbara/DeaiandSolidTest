@@ -83,6 +83,10 @@
 
 
 
+        <div id="app">
+          <input type="text" v-model="inputArray">
+          <button @click="addRankingData">メソッドを呼び出す</button>
+        </div>
 
 
         <hr>
@@ -378,6 +382,8 @@ export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
   data() {
     return {
+      inputArray: [],
+
       friendId: '',
 
       receiverId: '',
@@ -640,6 +646,33 @@ export default {
           this.remoteVideo.srcObject = remoteStream;
         });
       });
+    },
+
+    // Firebase Realtime Databaseへのランキングデータの追加メソッド
+    addRankingData() {
+      // Firebase Realtime Databaseにアクセス
+      const database = firebase.database();
+
+      var userId = firebase.auth().currentUser.uid;
+
+
+      // ユーザーのデータを取得
+      database.ref("users/" + userId).once("value")
+        .then((snapshot) => {
+          const userData = snapshot.val();
+
+          // ランキングのデータを追加
+          userData.ranking = this.inputArray;
+
+          // 更新されたデータを保存
+          return database.ref("users/" + userId).set(userData);
+        })
+        .then(() => {
+          console.log("ランキングが更新されました。");
+        })
+        .catch((error) => {
+          console.error("ランキングの更新中にエラーが発生しました:", error);
+        });
     },
 
 
