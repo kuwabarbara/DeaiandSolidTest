@@ -51,6 +51,7 @@
         <h1>  {{univName}}コミュニティのユーザー一覧</h1>
         <div class="container">
           <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
+            {{ useruser.user_id }} あ{{ useruser.ranking }} お<br>
             <div v-if="useruser.gender === user.gender">
             </div>
             <div v-else-if="mailDomain==extractDomain(useruser.email)">
@@ -533,6 +534,9 @@ export default {
 
     });
 
+    console.log("あああああああああ")
+    console.log(this.users)
+
   },
   methods: {
     initialize() {
@@ -611,6 +615,79 @@ export default {
 
       this.listenCall();
 
+    },
+
+    gsAlgorithm(maleUsers, femaleUsers) {
+      // マッチング結果を格納するオブジェクト
+      var matches = {};
+
+      // 男性ユーザーを保持するスタック
+      var maleStack = [...maleUsers];
+
+      while (maleStack.length > 0) {
+        var maleUser = maleStack.pop(); // スタックから男性ユーザーを取り出す
+        var femaleId = maleUser.ranking[0]; // 男性ユーザーの最も優先度の高い女性のID
+
+        if (!matches[femaleId]) {
+          // 女性がまだマッチしていない場合
+          matches[femaleId] = maleUser.user_id; // マッチング結果を記録
+        } else {
+          var currentMatch = matches[femaleId];
+
+          // 現在のマッチングと比較して、より優れた男性ユーザーがいるか判定
+          if (femaleUsers[femaleId].ranking.indexOf(maleUser.user_id) < femaleUsers[femaleId].ranking.indexOf(currentMatch)) {
+            // より優れた男性ユーザーが見つかった場合、現在のマッチングを取り消し、新たなマッチングを記録
+            matches[femaleId] = maleUser.user_id;
+            maleStack.push(femaleUsers[femaleId]); // 古いマッチングの男性ユーザーをスタックに戻す
+          } else {
+            maleStack.push(maleUser); // 新たなマッチングを断った男性ユーザーをスタックに戻す
+          }
+        }
+      }
+
+      return matches;
+    },
+
+    gsAlgorithm2(maleUsers, femaleUsers) {
+      // マッチング結果を格納するオブジェクト
+      var matches = {};
+
+      // 男性ユーザーのリストを作成
+      var freeMaleUsers = maleUsers.slice();
+
+      // 未マッチングの男性ユーザーが存在する限り繰り返す
+      while (freeMaleUsers.length > 0) {
+        var maleUser = freeMaleUsers[0];
+
+        // 男性ユーザーの選好リストの先頭の女性ユーザーを取得
+        var femaleUser = femaleUsers.find(user => user.user_id === maleUser.ranking[0]);
+
+        // 男性ユーザーと女性ユーザーをマッチングさせる
+        matches[maleUser.user_id] = femaleUser.user_id;
+
+        // 女性ユーザーが既に他の男性ユーザーとマッチングしている場合
+        if (femaleUser.ranking.length > 1) {
+          // 女性ユーザーの選好リストから現在の男性ユーザーを削除
+          femaleUser.ranking = femaleUser.ranking.filter(id => id !== maleUser.user_id);
+
+          // 女性ユーザーが次に選好する男性ユーザーを取得
+          var nextMaleUser = maleUsers.find(user => user.user_id === femaleUser.ranking[0]);
+
+          // 次に選好する男性ユーザーに対してもマッチング結果を更新
+          matches[nextMaleUser.user_id] = femaleUser.user_id;
+
+          // 次に選好する男性ユーザーがマッチング済みの場合はフリーリストから削除
+          if (matches[nextMaleUser.user_id] !== undefined) {
+            freeMaleUsers = freeMaleUsers.filter(user => user.user_id !== nextMaleUser.user_id);
+          }
+        }
+
+        // マッチングが完了した男性ユーザーをフリーリストから削除
+        freeMaleUsers.shift();
+      }
+
+      // マッチング結果を返す
+      return matches;
     },
 
     
@@ -1011,13 +1088,83 @@ export default {
       });
 
 
-      console.log(this.users);
-
-
       const db = firebase.database();
       const isOnlineRef = db.ref(`users/${this.user.uid}/peerid`);
       isOnlineRef.onDisconnect().set("null");
 
+
+      console.log(this.users)
+
+
+
+      // Firebase Realtime Databaseへの参照を取得
+      const databaseRef = firebase.database().ref('users');
+      // データの変更を監視して配列データを取得
+      databaseRef.on('value', (snapshot) => {
+        // データのスナップショットを取得
+        const data = snapshot.val();
+        // 配列データを取得
+        const arrayData = Object.values(data);
+
+        var xxxData = [];
+        // 取得した配列データの処理
+        arrayData.forEach((item) => {
+          //console.log(item.user_id);
+          //console.log(item.ranking);
+          //console.log(item.gender)
+
+          const user = {
+            user_id: item.user_id,
+            ranking: item.ranking.match(/"(.*?)"/g).map((rank) => rank.slice(1, -1)),
+            gender: item.gender
+          };
+
+          xxxData.push(user);
+
+        });
+
+        console.log(xxxData)
+
+        const maleUsers2 = xxxData.filter((user) => user.gender === "男性");
+        const femaleUsers2 = xxxData.filter((user) => user.gender === "女性");
+
+        console.log(maleUsers2)
+        console.log(femaleUsers2)
+
+        /*var maleUsers = [
+          {
+            gender: "男性",
+            ranking: ["femaleUserId1", "femaleUserId2"],
+            user_id: "maleUserId1"
+          },
+          // 必要に応じて他の男性ユーザーを追加してください
+        ];
+
+var femaleUsers = {
+  femaleUserId1: {
+    gender: "女性",
+    ranking: ["maleUserId1", "maleUserId2"],
+    user_id: "femaleUserId1"
+  },
+  femaleUserId2: {
+    gender: "女性",
+    ranking: ["maleUserId1", "maleUserId3"],
+    user_id: "femaleUserId2"
+  },
+  // 必要に応じて他の女性ユーザーを追加してください
+};*/
+
+        //console.log(maleUsers2)
+        //console.log(femaleUsers2)
+
+        console.log("aaaaaaaa")
+        console.log(this.gsAlgorithm2(maleUsers2,femaleUsers2))
+        console.log("aaaaaaaa")
+
+        console.log(xxxData)
+      }, (error) => {
+        console.error(error);
+      });
 
 
   },
