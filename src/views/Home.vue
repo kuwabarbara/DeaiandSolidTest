@@ -90,6 +90,7 @@
         </div>
 
 
+        {{ matching_result }}
         <hr>
         <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
         <hr>
@@ -383,6 +384,8 @@ export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
   data() {
     return {
+      matching_result: [],
+
       inputArray: [],
 
       friendId: '',
@@ -655,6 +658,9 @@ export default {
       // 男性ユーザーのリストを作成
       var freeMaleUsers = maleUsers.slice();
 
+      // 女性ユーザーのマッチング済み情報を格納するオブジェクト
+      var femaleMatches = {};
+
       // 未マッチングの男性ユーザーが存在する限り繰り返す
       while (freeMaleUsers.length > 0) {
         var maleUser = freeMaleUsers[0];
@@ -662,25 +668,26 @@ export default {
         // 男性ユーザーの選好リストの先頭の女性ユーザーを取得
         var femaleUser = femaleUsers.find(user => user.user_id === maleUser.ranking[0]);
 
-        // 男性ユーザーと女性ユーザーをマッチングさせる
-        matches[maleUser.user_id] = femaleUser.user_id;
-
         // 女性ユーザーが既に他の男性ユーザーとマッチングしている場合
-        if (femaleUser.ranking.length > 1) {
-          // 女性ユーザーの選好リストから現在の男性ユーザーを削除
-          femaleUser.ranking = femaleUser.ranking.filter(id => id !== maleUser.user_id);
+        if (femaleMatches[femaleUser.user_id] !== undefined) {
+          var currentMatchedMaleUser = maleUsers.find(user => user.user_id === femaleMatches[femaleUser.user_id]);
 
-          // 女性ユーザーが次に選好する男性ユーザーを取得
-          var nextMaleUser = maleUsers.find(user => user.user_id === femaleUser.ranking[0]);
-
-          // 次に選好する男性ユーザーに対してもマッチング結果を更新
-          matches[nextMaleUser.user_id] = femaleUser.user_id;
-
-          // 次に選好する男性ユーザーがマッチング済みの場合はフリーリストから削除
-          if (matches[nextMaleUser.user_id] !== undefined) {
-            freeMaleUsers = freeMaleUsers.filter(user => user.user_id !== nextMaleUser.user_id);
+          // 現在のマッチング相手と比較して、男性ユーザーの方が優先順位が高い場合
+          if (femaleUser.ranking.indexOf(currentMatchedMaleUser.user_id) > femaleUser.ranking.indexOf(maleUser.user_id)) {
+            // 現在のマッチングを解除
+            matches[currentMatchedMaleUser.user_id] = undefined;
+            freeMaleUsers.push(currentMatchedMaleUser);
+          }
+          else {
+            // 他の男性ユーザーとマッチングしているため、次の選好を処理
+            maleUser.ranking.shift();
+            continue;
           }
         }
+
+        // 男性ユーザーと女性ユーザーをマッチングさせる
+        matches[maleUser.user_id] = femaleUser.user_id;
+        femaleMatches[femaleUser.user_id] = maleUser.user_id;
 
         // マッチングが完了した男性ユーザーをフリーリストから削除
         freeMaleUsers.shift();
@@ -1158,7 +1165,8 @@ var femaleUsers = {
         //console.log(femaleUsers2)
 
         console.log("aaaaaaaa")
-        console.log(this.gsAlgorithm2(maleUsers2,femaleUsers2))
+        //console.log(this.gsAlgorithm2(maleUsers2,femaleUsers2))
+        this.matching_result=this.gsAlgorithm2(maleUsers2,femaleUsers2)
         console.log("aaaaaaaa")
 
         console.log(xxxData)
