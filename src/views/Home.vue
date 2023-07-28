@@ -451,7 +451,6 @@ export default {
         audio: true,
         video: true,
       },
-
       
     };
   },
@@ -541,7 +540,17 @@ export default {
     console.log("あああああああああ")
     console.log(this.user.gender)
 
-    this.allUser()
+    if(this.checkGender){
+      console.log("男性です")
+    }else{
+      console.log("女性です")
+    }
+
+    //this.getRanking()
+    console.log("ランキング表です")
+
+    this.getRanking();
+
 
   },
   methods: {
@@ -700,7 +709,9 @@ export default {
       return matches;
     },
 
-    allUser(){
+
+    //ログイン中のユーザーが男性だったらtrueを返す
+    checkGender(){
       //現在ログイン中のidを取得
       const uid = firebase.auth().currentUser.uid;
 
@@ -727,6 +738,12 @@ export default {
 
               if(uid==key){
                 console.log("これは現在ログイン中のユーザーの情報です")
+                if(gender=="男性"){
+                  return true
+                }
+                else{
+                  return false
+                }
               }
 
               // 取得した値を使って何かしらの処理を行う
@@ -739,12 +756,44 @@ export default {
           .catch(error => {
             console.error("データの取得に失敗しました:", error);
           });
-
-
-
-
     },
 
+
+    //ログイン中のユーザーのランキング表を取得する
+    async getRanking() {
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+            console.log(item);
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+        
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+    },
     
     listenCall() {
         var getUserMedia =
