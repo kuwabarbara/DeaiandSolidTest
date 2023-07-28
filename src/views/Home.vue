@@ -758,8 +758,37 @@ export default {
           });
     },
 
+    //userIDを渡したらそのユーザーのpeerIDを返す
+    async getPeerID(para_user_id) {
+      const database = firebase.database();
+      const usersRef = database.ref("users");
 
-    //ログイン中のユーザーのランキング表を取得する
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+
+        for (const key in usersData) {
+          const user = usersData[key];
+          console.log("このユーザーは" + user.user_id);
+          console.log("さがしてるのは" + para_user_id);
+
+          if (para_user_id === user.user_id) {
+            console.log("Yes");
+            return user.peerid;
+          } else {
+            console.log("No");
+          }
+        }
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+      return "wakaran";
+    },
+
+
+
+
+    //ログイン中のユーザーのランキング表とそのランクの人のpeerIDを取得する
     async getRanking() {
       const uid = firebase.auth().currentUser.uid;
       const database = firebase.database();
@@ -784,7 +813,16 @@ export default {
 
           // 配列の各要素を一つずつ表示
           arrayFromJson.forEach(item => {
-            console.log(item);
+            //console.log(item);
+
+            //ランキング上位のpeerIDから発表する
+            this.getPeerID(item).then(peerID => {
+              console.log(item+"さんは"+peerID); // ユーザーのpeerIDが表示される
+              this.Kokuhaku(peerID)
+            }).catch(error => {
+              console.error(error); // エラーが発生した場合の処理
+            });
+
           });
         } catch (error) {
           console.error("Invalid JSON format:", error);
@@ -917,6 +955,22 @@ export default {
       });
     },
 
+
+    //指定したpeerIDの人に告白する
+    Kokuhaku(id) {
+      if (this.conn) {
+        this.conn.close();
+      }
+
+      
+
+      this.conn = this.peer.connect(id, { reliable: true });
+
+      this.conn.on('open', () => {
+        
+        this.conn.send("kokuhaku"); 
+      });
+    },
 
 
     
