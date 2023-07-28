@@ -493,6 +493,7 @@ export default {
       const status = userData.status; // statusを取得する
 
 
+      console.log("えええええ")
       // 取得したデータを使用する
       console.log(`gender: ${gender}, name: ${name}`);
       this.user.gender=gender
@@ -538,7 +539,7 @@ export default {
     });
 
     console.log("あああああああああ")
-    console.log(this.users)
+    console.log(this.user.gender)
 
     this.allUser()
 
@@ -700,35 +701,48 @@ export default {
     },
 
     allUser(){
+      //現在ログイン中のidを取得
+      const uid = firebase.auth().currentUser.uid;
+
+      console.log("私は"+uid)
+
       // データベース参照の取得
       const database = firebase.database();
 
       // users直下のノードを取得
       const usersRef = database.ref("users");
 
-// データベースから値を取得
-usersRef.once("value")
-    .then(snapshot => {
-      // スナップショットから全ノードのデータを取得
-      const usersData = snapshot.val();
+      // データベースから値を取得
+      usersRef.once("value")
+          .then(snapshot => {
+            // スナップショットから全ノードのデータを取得
+            const usersData = snapshot.val();
 
-      // 各ノードのuser_id、peerid、genderの値を取得
-      Object.keys(usersData).forEach(key => {
-        const user = usersData[key];
-        const user_id = user.user_id;
-        const peerid = user.peerid;
-        const gender = user.gender;
+            // 各ノードのuser_id、peerid、genderの値を取得
+            Object.keys(usersData).forEach(key => {
+              const user = usersData[key];
+              const user_id = user.user_id;
+              const peerid = user.peerid;
+              const gender = user.gender;
 
-        // 取得した値を使って何かしらの処理を行う
-        console.log("Node Key:", key);
-        console.log("user_id:", user_id);
-        console.log("peerid:", peerid);
-        console.log("gender:", gender);
-      });
-    })
-    .catch(error => {
-      console.error("データの取得に失敗しました:", error);
-    });
+              if(uid==key){
+                console.log("これは現在ログイン中のユーザーの情報です")
+              }
+
+              // 取得した値を使って何かしらの処理を行う
+              console.log("Node Key:", key);
+              console.log("user_id:", user_id);
+              console.log("peerid:", peerid);
+              console.log("gender:", gender);
+            });
+          })
+          .catch(error => {
+            console.error("データの取得に失敗しました:", error);
+          });
+
+
+
+
     },
 
     
