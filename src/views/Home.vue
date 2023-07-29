@@ -962,13 +962,15 @@ export default {
         this.conn.close();
       }
 
+      //現在ログイン中のidを取得
+      const uid = firebase.auth().currentUser.uid;
       
 
       this.conn = this.peer.connect(id, { reliable: true });
 
       this.conn.on('open', () => {
         
-        this.conn.send("kokuhaku"); 
+        this.conn.send("kokuhaku"+"from"+uid); 
       });
     },
 
