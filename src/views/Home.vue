@@ -444,6 +444,8 @@ export default {
       localVideo: "",
       remoteVideo: "",
 
+      matchingUser: "free",
+
       // Video and audio are enabled for this call.
 
       localStream: "",
@@ -549,7 +551,7 @@ export default {
     //this.getRanking()
     console.log("ランキング表です")
 
-    this.getRanking();
+    this.allKokuhaku();
 
 
   },
@@ -788,8 +790,8 @@ export default {
 
 
 
-    //ログイン中のユーザーのランキング表とそのランクの人のpeerIDを取得する
-    async getRanking() {
+    //ログイン中のユーザーのランキング表のユーザー全員に告白する関数
+    async allKokuhaku() {
       const uid = firebase.auth().currentUser.uid;
       const database = firebase.database();
       const usersRef = database.ref("users");
@@ -832,7 +834,75 @@ export default {
         console.error("データの取得に失敗しました:", error);
       }
     },
-    
+
+    //パラメータのユーザーが何位にランクされているか返す関数 そのユーザーが存在しないなら-1を返す
+    async getRank(user_xxx) {
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          var cnt=0
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+            //console.log(item);
+
+            if(item==user_xxx){
+              return cnt
+            }
+
+            cnt=cnt+1
+
+
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+        
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+
+      return -1
+    },    
+
+    //拒否してきたユーザーを取得
+    extractUserId(inputString) {
+      const pattern = /^kyohifrom(\w+)/; // 正規表現パターン: 文章の先頭(^)に"kyohifrom" があることを示し、その後に1つ以上の単語文字(\w+)が続く
+      const match = inputString.match(pattern);
+
+      if (match && match[1]) {
+        return match[1]; // マッチした部分の最初のグループがユーザーIDとなる
+      } else {
+        return null; // マッチしない場合はnullを返す
+      }
+    },
+
+    getSubstringAfterKokuhakuFrom(inputString) {
+      const keyword = "kokuhakufrom";
+      if (inputString.startsWith(keyword)) {
+        return inputString.slice(keyword.length);
+      } else {
+        return null; // もし該当する文字列が見つからなかった場合はnullを返す（または任意の値を返す）
+      }
+    },
+
     listenCall() {
         var getUserMedia =
           navigator.getUserMedia ||
@@ -916,6 +986,71 @@ export default {
         console.log('Data received:');
         console.log(data);
 
+        //誰かから告白を受け取った場合
+        if(this.getSubstringAfterKokuhakuFrom(data)!=null){
+          //誰ともくっついてなかったら受理
+          if(this.matchingUser=="free"){
+            this.matchingUser=this.getSubstringAfterKokuhakuFrom(data);
+
+            //受理したと相手にP2Pで送る処理
+            //this.Kokuhaku(this.getSubstringAfterKokuhakuFrom(data))
+            //ランキング上位のpeerIDから発表する
+            this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+              this.Kokuhaku(peerID)
+            }).catch(error => {
+              console.error(error); // エラーが発生した場合の処理
+            });
+          }
+          else{
+            //すでに誰かとくっついていたらランキング表によっては乗り換える処理
+
+            //どちらも存在するユーザーidだったら
+            if(this.getRank(this.getSubstringAfterKokuhakuFrom(data))!=-1 && this.getRank(this.matchingUser)!=-1){
+              //マッチしている人に告白されたら
+              if(this.getRank(this.getSubstringAfterKokuhakuFrom(data))== this.getRank(this.matchingUser)){
+                console.log("マッチしている人に告白された")
+              }
+              //そのままだったら
+              else if(this.getRank(this.getSubstringAfterKokuhakuFrom(data))> this.getRank(this.matchingUser)){
+                //いま告白してきた相手に拒否したとP2Pで送る処理を書く
+                this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+                  this.kyohi(peerID)
+                }).catch(error => {
+                  console.error(error); // エラーが発生した場合の処理
+                });
+              }
+              //乗り換える場合
+              else{
+                //キープの相手に拒否したとP2Pで送る処理を書く
+                this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+                  this.kyohi(peerID)
+                }).catch(error => {
+                  console.error(error); // エラーが発生した場合の処理
+                });
+
+                //いま告白してきた相手に受理したとP2Pで送る処理
+                this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+                  this.Kokuhaku(peerID)
+                }).catch(error => {
+                  console.error(error); // エラーが発生した場合の処理
+                });
+              }
+            }
+ 
+          }
+
+
+
+        }
+
+        //誰かから拒否を受け取った場合
+        if(this.extractUserId(data)!=null){
+          //マッチしている相手から拒否された場合
+          if(this.matchingUser==this.extractUserId(data)){
+            this.matchingUser="free"                        
+          }
+        }
+
         let currentIndex = 0;
         const interval = 100; // 各文字の表示間隔（ミリ秒）
 
@@ -974,6 +1109,24 @@ export default {
       });
     },
 
+
+    //指定したpeerIDの人を拒否する
+    Kyohi(id) {
+      if (this.conn) {
+        this.conn.close();
+      }
+
+      //現在ログイン中のidを取得
+      const uid = firebase.auth().currentUser.uid;
+      
+
+      this.conn = this.peer.connect(id, { reliable: true });
+
+      this.conn.on('open', () => {
+        
+        this.conn.send("kyohi"+"from"+uid); 
+      });
+    },
 
     
 
