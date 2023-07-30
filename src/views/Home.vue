@@ -36,6 +36,7 @@
         <span>性別：{{user.gender}}</span><br>
         <span>メールアドレス：{{user.email}}</span><br>
         <span>ステータスコメント：{{user.status}}</span><br>
+        <span>最適な相手は：{{user.matchingUser}}</span><br>
 
         <span> {{univName}} 学生です </span>
       </div>
@@ -51,7 +52,10 @@
         <h1>  {{univName}}コミュニティのユーザー一覧</h1>
         <div class="container">
           <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
+            
+            <!--
             {{ useruser.user_id }} あ{{ useruser.ranking }} お<br>
+            -->
             <div v-if="useruser.gender === user.gender">
             </div>
             <div v-else-if="mailDomain==extractDomain(useruser.email)">
