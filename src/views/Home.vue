@@ -36,7 +36,7 @@
         <span>性別：{{user.gender}}</span><br>
         <span>メールアドレス：{{user.email}}</span><br>
         <span>ステータスコメント：{{user.status}}</span><br>
-        <span>最適な相手は：{{user.matchingUser}}</span><br>
+        <span>最適な相手は：{{matchingUser}}</span><br>
 
         <span> {{univName}} 学生です </span>
       </div>
@@ -448,7 +448,7 @@ export default {
       localVideo: "",
       remoteVideo: "",
 
-      matchingUser: "free",
+      matchingUser: 'free',
 
       // Video and audio are enabled for this call.
 
@@ -1011,7 +1011,7 @@ export default {
             //どちらも存在するユーザーidだったら
             if(this.getRank(this.getSubstringAfterKokuhakuFrom(data))!=-1 && this.getRank(this.matchingUser)!=-1){
               //マッチしている人に告白されたら
-              if(this.getRank(this.getSubstringAfterKokuhakuFrom(data))== this.getRank(this.matchingUser)){
+              if(this.getSubstringAfterKokuhakuFrom(data) == this.matchingUser){
                 console.log("マッチしている人に告白された")
               }
               //そのままだったら
@@ -1104,6 +1104,7 @@ export default {
       if(id=="null") return      
       if(id==null) return
 
+      console.log("告白する")
 
       //現在ログイン中のidを取得
       const uid = firebase.auth().currentUser.uid;
