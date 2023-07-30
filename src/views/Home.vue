@@ -1101,6 +1101,10 @@ export default {
         this.conn.close();
       }
 
+      if(id=="null") return      
+      if(id==null) return
+
+
       //現在ログイン中のidを取得
       const uid = firebase.auth().currentUser.uid;
       
@@ -1119,6 +1123,10 @@ export default {
       if (this.conn) {
         this.conn.close();
       }
+
+      if(id=="null") return      
+      if(id==null) return
+
 
       //現在ログイン中のidを取得
       const uid = firebase.auth().currentUser.uid;
