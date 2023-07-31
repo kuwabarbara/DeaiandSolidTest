@@ -36,7 +36,7 @@
         <span>性別：{{user.gender}}</span><br>
         <span>メールアドレス：{{user.email}}</span><br>
         <span>ステータスコメント：{{user.status}}</span><br>
-        <span>最適な相手は：{{matchingUser}}</span><br>
+        <span>最適な相手は,,, ：{{matchingUser}}</span><br>
 
         <span> {{univName}} 学生です </span>
       </div>
@@ -560,9 +560,9 @@ export default {
 
     //this.allKokuhaku();
 
-    if(this.checkGender){
+    /*if(this.checkGender){
       this.matchMake()
-    }
+    }*/
 
 
   },
@@ -1534,7 +1534,21 @@ export default {
         });
     }
   },
+
   mounted() {
+    // 特定の時刻(例: 2023年8月1日 15時30分)に関数を実行する
+    const targetDate = new Date('2023-08-01T5:15:00');
+
+    // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
+    const delay = targetDate.getTime() - Date.now();
+    if(this.checkGender){
+          // 遅延後に指定した関数を実行する
+        setTimeout(this.matchMake, delay);
+
+    }
+
+
+
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js';
     //script.onload = () => {
