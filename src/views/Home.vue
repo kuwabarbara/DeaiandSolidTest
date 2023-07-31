@@ -1182,12 +1182,13 @@ export default {
         }
 
         //誰かから拒否を受け取った場合
-        if(this.extractUserId(data)!=null){
+        if(this.extractUserId(data)!=null){          
           this.kyohisareta=1
 
           //マッチしている相手から拒否された場合
           if(this.matchingUser==this.extractUserId(data)){
-            this.matchingUser="free"                        
+            this.matchingUser="free"
+            this.matchMake()
           }
         }
 
