@@ -449,6 +449,9 @@ export default {
       remoteVideo: "",
 
       matchingUser: 'free',
+      kokuhakuzumi: 0,  //何人の人に告白したか
+      kyohisareta: 0,   //告白されたら1になる
+      kokuhakusareta: 0,//拒否されたら0になる
 
       // Video and audio are enabled for this call.
 
@@ -555,7 +558,11 @@ export default {
     //this.getRanking()
     console.log("ランキング表です")
 
-    this.allKokuhaku();
+    //this.allKokuhaku();
+
+    if(this.checkGender){
+      this.matchMake()
+    }
 
 
   },
@@ -792,6 +799,131 @@ export default {
     },
 
 
+    async matchMake() {
+      this.kokuhakusareta = 0;
+      this.kyohisareta = 0;
+
+      let cnt = 0; // ランキング表に何人のユーザーがいるか
+
+      // ランキング表に何人のユーザーがいるかカウントする
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx;
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+            console.log(item);
+            cnt = cnt + 1;
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+
+      let index = this.kokuhakuzumi;
+      let prevKokuhakusareta = this.kokuhakusareta;
+      let unchangedDuration = 0;
+
+      const interval = setInterval(() => {
+        if (this.kokuhakusareta !== prevKokuhakusareta) {
+          // this.kokuhakusaretaに変化があった場合
+          clearInterval(interval); // 監視を停止
+          console.log("this.kokuhakusaretaに変化があったため、ループを脱出します。");
+          // ここに変化があった場合の処理を記述
+        } else {
+          // 10秒間変化がなかった場合
+          unchangedDuration += 1000; // 1秒間の変化がない期間を追加
+
+          if (unchangedDuration >= 10000) {
+            // 10秒以上変化がない場合
+            clearInterval(interval); // 監視を停止
+            console.log("10秒以上変化がないため、ループを次に進めます。");
+            // ここに次に進む処理を記述
+          }
+        }
+
+        if (index < cnt) {
+          this.KokuhakuWithRank(index);
+          index++;
+        }
+        else{
+          clearInterval(interval); // 監視を停止
+        }
+      }, 1000);
+    },
+
+
+   //上位target番目(ゼロ位から数える)の人に告白する
+   async KokuhakuWithRank(target) {
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          var cnt=0
+
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+
+            //
+            if(cnt==target){
+              //ランキング上位のpeerIDから発表する
+              this.getPeerID(item).then(peerID => {
+                console.log(item+"さんは"+peerID); // ユーザーのpeerIDが表示される
+                this.Kokuhaku(peerID);
+                this.kokuhakuzumi=target;
+              }).catch(error => {
+                console.error(error); // エラーが発生した場合の処理
+              });
+            }
+
+            cnt=cnt+1
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+        
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+    },
+
+
+
 
 
     //ログイン中のユーザーのランキング表のユーザー全員に告白する関数
@@ -992,6 +1124,8 @@ export default {
 
         //誰かから告白を受け取った場合
         if(this.getSubstringAfterKokuhakuFrom(data)!=null){
+          this.kokuhakusareta=1
+
           //誰ともくっついてなかったら受理
           if(this.matchingUser=="free"){
             this.matchingUser=this.getSubstringAfterKokuhakuFrom(data);
@@ -1049,6 +1183,8 @@ export default {
 
         //誰かから拒否を受け取った場合
         if(this.extractUserId(data)!=null){
+          this.kyohisareta=1
+
           //マッチしている相手から拒否された場合
           if(this.matchingUser==this.extractUserId(data)){
             this.matchingUser="free"                        
