@@ -549,7 +549,7 @@ export default {
     console.log("あああああああああ")
     console.log(this.user.gender)
 
-    if(this.checkGender){
+    if(this.checkGender()){
       console.log("男性です")
     }else{
       console.log("女性です")
@@ -724,52 +724,40 @@ export default {
 
 
     //ログイン中のユーザーが男性だったらtrueを返す
-    checkGender(){
-      //現在ログイン中のidを取得
+    async checkGender() {
       const uid = firebase.auth().currentUser.uid;
+      console.log("私は" + uid);
 
-      console.log("私は"+uid)
-
-      // データベース参照の取得
       const database = firebase.database();
-
-      // users直下のノードを取得
       const usersRef = database.ref("users");
 
-      // データベースから値を取得
-      usersRef.once("value")
-          .then(snapshot => {
-            // スナップショットから全ノードのデータを取得
-            const usersData = snapshot.val();
+      try {
+          const snapshot = await usersRef.once("value");
+          const usersData = snapshot.val();
 
-            // 各ノードのuser_id、peerid、genderの値を取得
-            Object.keys(usersData).forEach(key => {
+          for (const key in usersData) {
               const user = usersData[key];
-              const user_id = user.user_id;
-              const peerid = user.peerid;
-              const gender = user.gender;
-
-              if(uid==key){
-                console.log("これは現在ログイン中のユーザーの情報です")
-                if(gender=="男性"){
-                  return true
-                }
-                else{
-                  return false
-                }
+              if (uid === key) {
+                  console.log("これは現在ログイン中のユーザーの情報です");
+                  console.log("こいつの性別は" + user.gender);
+                  if (user.gender.trim().normalize() === "男性".trim().normalize()) {
+                      console.log("確認しました");
+                      return true;
+                  } else {
+                      console.log("確認できませんでした");
+                      return false;
+                  }
               }
-
-              // 取得した値を使って何かしらの処理を行う
               console.log("Node Key:", key);
-              console.log("user_id:", user_id);
-              console.log("peerid:", peerid);
-              console.log("gender:", gender);
-            });
-          })
-          .catch(error => {
-            console.error("データの取得に失敗しました:", error);
-          });
-    },
+              console.log("user_id:", user.user_id);
+              console.log("peerid:", user.peerid);
+              console.log("gender:", user.gender);
+          }
+      } catch (error) {
+          console.error("データの取得に失敗しました:", error);
+          return false;
+      }
+  },
 
     //userIDを渡したらそのユーザーのpeerIDを返す
     async getPeerID(para_user_id) {
@@ -800,6 +788,7 @@ export default {
 
 
     async matchMake() {
+      console.log("マッチメイクを開始します！")
       this.kokuhakusareta = 0;
       this.kyohisareta = 0;
 
@@ -925,7 +914,7 @@ export default {
 
 
 
-
+/*
     //ログイン中のユーザーのランキング表のユーザー全員に告白する関数
     async allKokuhaku() {
       const uid = firebase.auth().currentUser.uid;
@@ -969,7 +958,7 @@ export default {
       } catch (error) {
         console.error("データの取得に失敗しました:", error);
       }
-    },
+    },*/
 
     //パラメータのユーザーが何位にランクされているか返す関数 そのユーザーが存在しないなら-1を返す
     async getRank(user_xxx) {
@@ -1187,6 +1176,7 @@ export default {
 
           //マッチしている相手から拒否された場合
           if(this.matchingUser==this.extractUserId(data)){
+            console.log("振られた")
             this.matchingUser="free"
             this.matchMake()
           }
@@ -1241,7 +1231,7 @@ export default {
       if(id=="null") return      
       if(id==null) return
 
-      console.log("告白する")
+      console.log(id+"さんに告白する")
 
       //現在ログイン中のidを取得
       const uid = firebase.auth().currentUser.uid;
@@ -1250,7 +1240,7 @@ export default {
       this.conn = this.peer.connect(id, { reliable: true });
 
       this.conn.on('open', () => {
-        
+        console.log("告白を送信")
         this.conn.send("kokuhaku"+"from"+uid); 
       });
     },
@@ -1433,7 +1423,11 @@ export default {
         .catch(error => {
           console.error('データの保存に失敗しました', error)
         })
-    }, 
+    },
+
+    sugukesu() {
+      console.log("すぐけすやつ")
+    },
 
     goToPage(pageName) {
       this.$router.push({ path: '/' + pageName })
@@ -1537,15 +1531,34 @@ export default {
 
   mounted() {
     // 特定の時刻(例: 2023年8月1日 15時30分)に関数を実行する
-    const targetDate = new Date('2023-08-01T5:15:00');
+    /*const targetDate = new Date('2023-08-03T20:30:00');
 
     // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
     const delay = targetDate.getTime() - Date.now();
     if(this.checkGender){
           // 遅延後に指定した関数を実行する
         setTimeout(this.matchMake, delay);
+        setTimeout(this.sugukesu, delay);
+    }*/
 
-    }
+    // 特定の時刻(例: 2023年8月3日 20時30分)に関数を実行する
+    const targetDate = new Date('2023-08-04T00:06:00');
+
+    // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
+    const delay = targetDate.getTime() - Date.now();
+
+    this.checkGender().then(result => {
+    if (result) {
+      // 遅延後に指定した関数を実行する
+      setTimeout(() => {
+          this.matchMake(); // matchMake関数を実行
+          this.sugukesu(); // sugukesu関数を実行
+      }, delay);
+
+      }
+    });
+
+
 
 
 
