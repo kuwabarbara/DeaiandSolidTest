@@ -394,6 +394,8 @@ export default {
 
       friendId: '',
 
+      myID: '',
+
       receiverId: '',
       statusMessage: 'Waiting for connection...',
       lastPeerId: null,
@@ -489,6 +491,7 @@ export default {
       ]
     // 現在認証されているユーザーのUIDを取得する
     const uid = firebase.auth().currentUser.uid;
+    this.myID=uid
 
     // Realtime Databaseの参照を作成する
     const dbRef = firebase.database().ref(`users/${uid}`);
@@ -557,6 +560,9 @@ export default {
 
     //this.getRanking()
     console.log("ランキング表です")
+
+
+    console.log(this.myID)
 
     //this.allKokuhaku();
 
@@ -1234,14 +1240,19 @@ export default {
       console.log(id+"さんに告白する")
 
       //現在ログイン中のidを取得
-      const uid = firebase.auth().currentUser.uid;
+      //const uid = firebase.auth().currentUser.uid;
       
 
       this.conn = this.peer.connect(id, { reliable: true });
 
+      const myID = this.myID;
+
       this.conn.on('open', () => {
         console.log("告白を送信")
-        this.conn.send("kokuhaku"+"from"+uid); 
+        //this.conn.send("kokuhaku"+"from"+uid); 
+        this.conn.send("testtest");        
+
+        this.conn.send("kokuhaku"+"from"+myID);
       });
     },
 
@@ -1257,14 +1268,18 @@ export default {
 
 
       //現在ログイン中のidを取得
-      const uid = firebase.auth().currentUser.uid;
+      //const uid = firebase.auth().currentUser.uid;
       
 
       this.conn = this.peer.connect(id, { reliable: true });
 
+      const myID = this.myID;
+
       this.conn.on('open', () => {
         
-        this.conn.send("kyohi"+"from"+uid); 
+        //this.conn.send("kyohi"+"from"+uid); 
+        this.conn.send("testtest");        
+        this.conn.send("kyohi"+"from"+myID); 
       });
     },
 
@@ -1542,7 +1557,7 @@ export default {
     }*/
 
     // 特定の時刻(例: 2023年8月3日 20時30分)に関数を実行する
-    const targetDate = new Date('2023-08-04T00:06:00');
+    const targetDate = new Date('2023-08-04T04:18:00');
 
     // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
     const delay = targetDate.getTime() - Date.now();
