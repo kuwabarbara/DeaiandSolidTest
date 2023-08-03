@@ -1252,6 +1252,13 @@ export default {
         //this.conn.send("kokuhaku"+"from"+uid); 
         this.conn.send("testtest");        
 
+        for(let i=0;i<10;i++){
+          if(this.myID!=""){
+            break
+          }
+          this.conn.send("testtest");
+        }
+
         this.conn.send("kokuhaku"+"from"+myID);
       });
     },
@@ -1279,6 +1286,14 @@ export default {
         
         //this.conn.send("kyohi"+"from"+uid); 
         this.conn.send("testtest");        
+
+        for(let i=0;i<10;i++){
+          if(this.myID!=""){
+            break
+          }
+          this.conn.send("testtest");
+        }
+
         this.conn.send("kyohi"+"from"+myID); 
       });
     },
@@ -1557,7 +1572,7 @@ export default {
     }*/
 
     // 特定の時刻(例: 2023年8月3日 20時30分)に関数を実行する
-    const targetDate = new Date('2023-08-04T04:18:00');
+    const targetDate = new Date('2023-08-04T05:02:00');
 
     // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
     const delay = targetDate.getTime() - Date.now();
