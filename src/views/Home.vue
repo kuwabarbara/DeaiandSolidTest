@@ -570,6 +570,8 @@ export default {
       this.matchMake()
     }*/
 
+    //this.matchMake()
+
 
   },
   methods: {
@@ -1119,6 +1121,11 @@ export default {
 
         //誰かから告白を受け取った場合
         if(this.getSubstringAfterKokuhakuFrom(data)!=null){
+          console.log("告白された")
+          if (this.conn) {
+            this.conn.close();
+          }
+
           this.kokuhakusareta=1
 
           //誰ともくっついてなかったら受理
@@ -1230,9 +1237,10 @@ export default {
 
     //指定したpeerIDの人に告白する
     Kokuhaku(id) {
-      if (this.conn) {
+
+      /*if (this.conn) {
         this.conn.close();
-      }
+      }*/
 
       if(id=="null") return      
       if(id==null) return
@@ -1245,30 +1253,44 @@ export default {
 
       this.conn = this.peer.connect(id, { reliable: true });
 
-      const myID = this.myID;
+      console.log("あかさたな")
+
 
       this.conn.on('open', () => {
+        console.log("はまやらわ")
         console.log("告白を送信")
         //this.conn.send("kokuhaku"+"from"+uid); 
         this.conn.send("testtest");        
+        /*this.conn.send("testtest");        
+        this.conn.send("testtest");        
+        this.conn.send("testtest");*/
+        
+        const myID = this.myID;
 
-        for(let i=0;i<10;i++){
+        /*for(let i=0;i<10;i++){
           if(this.myID!=""){
             break
           }
           this.conn.send("testtest");
-        }
+        }*/
 
         this.conn.send("kokuhaku"+"from"+myID);
+
+
       });
+
+            /*if (this.conn) {
+        this.conn.close();
+      }*/
+
     },
 
 
     //指定したpeerIDの人を拒否する
     Kyohi(id) {
-      if (this.conn) {
+      /*if (this.conn) {
         this.conn.close();
-      }
+      }*/
 
       if(id=="null") return      
       if(id==null) return
@@ -1280,12 +1302,16 @@ export default {
 
       this.conn = this.peer.connect(id, { reliable: true });
 
-      const myID = this.myID;
 
       this.conn.on('open', () => {
         
         //this.conn.send("kyohi"+"from"+uid); 
         this.conn.send("testtest");        
+        this.conn.send("testtest");        
+        this.conn.send("testtest");        
+        this.conn.send("testtest");        
+
+        const myID = this.myID;
 
         for(let i=0;i<10;i++){
           if(this.myID!=""){
@@ -1572,7 +1598,7 @@ export default {
     }*/
 
     // 特定の時刻(例: 2023年8月3日 20時30分)に関数を実行する
-    const targetDate = new Date('2023-08-04T05:02:00');
+    const targetDate = new Date('2023-08-05T02:40:00');
 
     // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
     const delay = targetDate.getTime() - Date.now();
