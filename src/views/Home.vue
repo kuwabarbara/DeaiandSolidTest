@@ -127,6 +127,66 @@
           <div id="status">{{ statusMessage }}</div>
         </div>
 
+        <b>相手がオフラインの時用のチャット</b>
+        <hr>
+            <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
+              <!-- <Avator :user="message.user" /> -->
+              <div v-if="message.user===user.name">
+                <div class="text-left">
+                  <v-container class="conversation-container">
+                  <v-card class="conversation-card">
+                    <div class="ml-2">
+                      <div class="font-bold">{{ message.user }}</div>
+                      <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                    </div>
+                  </v-card>
+                  </v-container>
+                </div>
+              </div>
+              <div v-else>
+                  <div class="text-right">
+                    <v-container class="conversation-container">
+                      <v-card class="conversation-card right-align">
+                        <div class="ml-2">
+                          <v-card-text>
+                            <div class="font-bold">{{ message.user }}</div>
+                            <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                          </v-card-text>
+                        </div>
+                        </v-card>
+                    </v-container>
+                  </div>
+              </div>
+            </div>
+        <hr>
+        <main class="overflow-y-scroll flex-grow">
+          <div class="flex flex-col ml-6 h-full">
+            <div class="flex-grow overflow-y-scroll">              
+            </div>
+            <div class="border border-gray-900 rounded mb-4">
+              <textarea autofocus
+                rows="5" cols="50"
+                class="w-full pt-4 pl-8 outline-none"
+                :placeholder="placeholder"
+                v-model="message"
+              ></textarea>
+                <div class="bg-gray-100 p-2">
+                  <v-btn
+                    class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
+                    @click="sendMessage"
+                  >送信</v-btn>
+                </div>
+              </div>
+          </div>
+        </main> 
+        <div class="flex-grow overflow-y-scroll">
+          <div class="mt-2 mb-4 flex">
+            <div class="ml-2">
+              <div>{{ message }}</div>
+            </div>
+          </div>
+        </div>
+                
         <div>
           <v-btn @click="makeCall">電話ボタン</v-btn>
         </div>
