@@ -388,6 +388,8 @@ export default {
   name: 'MyComponent', // コンポーネントの名前を指定する
   data() {
     return {
+      startTime: null, 
+
       matching_result: [],
 
       inputArray: [],
@@ -1116,8 +1118,16 @@ export default {
 
     ready() {
       this.conn.on('data', (data) => {
+        if(this.startTime!=null){
+          const endTime = new Date().getTime(); // 終了時間を記録
+          const elapsedTime = endTime - this.startTime; // 経過時間を計算（ミリ秒）
+
+          console.log(`処理にかかった時間: ${elapsedTime} ミリ秒`);
+        }
+        
         console.log('Data received:');
         console.log(data);
+
 
         //誰かから告白を受け取った場合
         if(this.getSubstringAfterKokuhakuFrom(data)!=null){
@@ -1250,6 +1260,8 @@ export default {
       //現在ログイン中のidを取得
       //const uid = firebase.auth().currentUser.uid;
       
+      //測定開始
+      this.startTime = new Date().getTime();
 
       this.conn = this.peer.connect(id, { reliable: true });
 
@@ -1304,21 +1316,11 @@ export default {
 
 
       this.conn.on('open', () => {
+        this.conn.send("testtest");        
         
         //this.conn.send("kyohi"+"from"+uid); 
-        this.conn.send("testtest");        
-        this.conn.send("testtest");        
-        this.conn.send("testtest");        
-        this.conn.send("testtest");        
-
         const myID = this.myID;
 
-        for(let i=0;i<10;i++){
-          if(this.myID!=""){
-            break
-          }
-          this.conn.send("testtest");
-        }
 
         this.conn.send("kyohi"+"from"+myID); 
       });
@@ -1327,7 +1329,15 @@ export default {
     
 
     connect() {
-      this.join();
+      //送信する相手がオフラインの場合
+      if(this.receiverId=='' || this.receiverId=='null'){
+        console.log("相手はオフライン");
+        //this.sendMessage();
+      }
+      //送信する相手がオンラインの場合
+      else{
+        this.join();
+      }
     },
     updateClassData(index, day, value) {
       this.timetable[index][day] = value;
@@ -1598,7 +1608,7 @@ export default {
     }*/
 
     // 特定の時刻(例: 2023年8月3日 20時30分)に関数を実行する
-    const targetDate = new Date('2023-08-05T02:40:00');
+    const targetDate = new Date('2023-08-05T03:13:00');
 
     // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
     const delay = targetDate.getTime() - Date.now();
