@@ -1668,7 +1668,7 @@ export default {
     }*/
 
     // 特定の時刻(例: 2023年8月3日 20時30分)に関数を実行する
-    const targetDate = new Date('2023-08-05T03:13:00');
+    /*const targetDate = new Date('2023-08-05T03:13:00');
 
     // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
     const delay = targetDate.getTime() - Date.now();
@@ -1682,7 +1682,7 @@ export default {
       }, delay);
 
       }
-    });
+    });*/
 
 
 
