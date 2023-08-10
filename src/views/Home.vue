@@ -36,7 +36,7 @@
         <span>性別：{{user.gender}}</span><br>
         <span>メールアドレス：{{user.email}}</span><br>
         <span>ステータスコメント：{{user.status}}</span><br>
-        <span>最適な相手は,,, ：{{matchingUser}}</span><br>
+        <!--  <span>最適な相手は,,, ：{{matchingUser}}</span><br>  -->
 
         <span> {{univName}} 学生です </span>
       </div>
@@ -88,13 +88,13 @@
 
 
 
-        <div id="app">
-          <input type="text" v-model="inputArray">
-          <button @click="addRankingData">メソッドを呼び出す</button>
-        </div>
+      <!--  <div id="app"> -->
+      <!--    <input type="text" v-model="inputArray"> -->
+      <!--    <button @click="addRankingData">メソッドを呼び出す</button> -->
+      <!--  </div> -->
 
 
-        {{ matching_result }}
+        <!-- {{ matching_result }} -->
         <hr>
         <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
         <hr>
@@ -1690,7 +1690,7 @@ export default {
       }
     });*/
 
-    this.matchMake()
+    //this.matchMake()
 
 
 
