@@ -1178,15 +1178,21 @@ export default {
 
     ready() {
       this.conn.on('data', (data) => {
-        if(this.startTime!=null){
+        /*if(this.startTime!=null){
           const endTime = new Date().getTime(); // 終了時間を記録
           const elapsedTime = endTime - this.startTime; // 経過時間を計算（ミリ秒）
 
           console.log(`処理にかかった時間: ${elapsedTime} ミリ秒`);
-        }
+        }*/
         
         console.log('Data received:');
         console.log(data);
+        console.log((typeof data))
+
+        if((typeof data)!=String){
+          console.log("かかった時間は")
+          console.log(new Date().getTime()-data)
+        }
 
 
         //誰かから告白を受け取った場合
@@ -1332,7 +1338,7 @@ export default {
         console.log("はまやらわ")
         console.log("告白を送信")
         //this.conn.send("kokuhaku"+"from"+uid); 
-        this.conn.send("testtest");        
+        this.conn.send(this.startTime);        
         /*this.conn.send("testtest");        
         this.conn.send("testtest");        
         this.conn.send("testtest");*/
@@ -1683,6 +1689,8 @@ export default {
 
       }
     });*/
+
+    this.matchMake()
 
 
 
