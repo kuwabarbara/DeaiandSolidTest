@@ -100,34 +100,7 @@
         <hr>
         <b>チャット</b>
 
-        <div>
 
-          <div>
-            <!-- <input type="text" v-model="receiverId" title="Input the ID from receive.html"> -->
-            <textarea autofocus
-                rows="5" cols="50"
-                class="w-full pt-4 pl-8 outline-none"
-                :placeholder="placeholder"
-                v-model="inputMessage"
-              ></textarea>
-            <v-btn @click="connect">送信</v-btn>
-          </div>
-
-          <div class="text-left">
-            <v-container class="conversation-container">
-              <v-card class="conversation-card">
-                <div class="ml-2">
-                  <span v-html="p2pmsg.replace(/\n/g, '<br>')"></span>
-                </div>
-              </v-card>
-            </v-container>
-          </div>
-
-
-          <div id="status">{{ statusMessage }}</div>
-        </div>
-
-        <b>相手がオフラインの時用のチャット</b>
         <hr>
             <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
               <!-- <Avator :user="message.user" /> -->
