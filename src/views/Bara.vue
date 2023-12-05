@@ -27,7 +27,7 @@ export default {
         return {
             ReadData :null,
             SaveData :null,
-            loginCheck : false,
+            loginCheck : "not login",
 
         };
     },
@@ -52,11 +52,11 @@ export default {
             
             // Check if logged in. If so, show the user's WebID.
             if (getDefaultSession().info.isLoggedIn) {
-                this.loginCheck = true;
+                this.loginCheck = "login";
                 console.log(`aaa`);
             }
             else{
-                this.loginCheck = false;
+                this.loginCheck = "not login";
                 console.log(`bbb`);
             }
         },
