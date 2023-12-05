@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Getting Started: Inrupt JavaScript Client Libraries</title>
+  <script defer src="kuwasolid.js"></script>
+  <link rel="stylesheet" href="my-demo.css" />
+</head>
+
+<body>
+  <header>
+    <h2>Getting Started</h2>
+    <h3>with Inrupt JavaScript Client Libraries</h3>
+  </header>
+  <section id="login" class="panel">
+    <div class="row">
+      <label id="labelIdP" for="select-idp">1. Select your Identity Provider: </label>
+      <select id="select-idp" name="select-idp">
+        <option value="">--Please select an Identity Provider (IdP)--</option>
+        <!-- Update the select-idp option if not using PodSpaces -->
+        <option value="https://login.inrupt.com">https://login.inrupt.com (PodSpaces)</option>
+
+      </select>
+      <button name="btnLogin" id="btnLogin">Login</button>
+    </div>
+  </section>
+
+  <div id="read" class="panel">
+    <div class="row">
+      <label id="readlabel" for="myWebID">2. Logged in with your WebID: </label>
+      <input type="text" id="myWebID" name="myWebID" size="50" disabled>
+
+      <button name="btnRead" id="btnRead">Get Pod URL(s)</button>
+    </div>
+  </div>
+
+  <div id="write" class="panel">
+    <div class="row">
+      <label id="writelabel">3.Create a private reading list in my Pod.</label>
+    </div>
+    <br>
+    <div class="row">
+      <div>
+        <label id="podlabel" for="select-pod">a. Write to your Pod: </label>
+
+        <select id="select-pod" name="select-pod" widths: 120>
+          <option value="">--Please select your Pod--</option>
+        </select>getting-started/readingList/myList
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div>
+        <label id="listLabel" for="titles">b. Enter items to read: </label>
+        <textarea id="titles" name="titles" rows="5" cols="42">
+Leaves of Grass
+RDF 1.1 Primer</textarea>
+        <button name="btnCreate" id="btnCreate">Create</button>
+      </div>
+      <br>
+    </div>
+  </div>
+  <div id="results" class="panel">
+    <div class="row">
+      <label>Create Reading List Status</label>
+      <span id="labelCreateStatus"></span>
+    </div>
+    <div class="row">
+      <div>
+        <label id="labelRetrieved" for="savedtitles">Retrieved to validate:</label>
+        <textarea id="savedtitles" name="savedtitles" rows="5" cols="42" disabled></textarea>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+    // Import from "@inrupt/solid-client-authn-browser"
+import {
+    login,
+    handleIncomingRedirect,
+    getDefaultSession,
+    fetch
+  } from "@inrupt/solid-client-authn-browser";
+  
+  // Import from "@inrupt/solid-client"
+  import {
+    addUrl,
+    addStringNoLocale,
+    createSolidDataset,
+    createThing,
+    getPodUrlAll,
+    getSolidDataset,
+    getThingAll,
+    getStringNoLocale,
+    removeThing,
+    saveSolidDatasetAt,
+    setThing
+  } from "@inrupt/solid-client";
+  
+  import { SCHEMA_INRUPT, RDF, AS } from "@inrupt/vocab-common-rdf";
+  
+  
+  console.log("aiueo");
+  
+  
+  
+  var selectorIdP;
+  var selectorPod;
+  var buttonLogin;
+  var buttonRead;
+  var buttonCreate;
+  var labelCreateStatus;  
+  
+  window.onload = function() {
+    console.log(document);
+  
+    selectorIdP = document.querySelector("#select-idp");
+    selectorPod = document.querySelector("#select-pod");
+    buttonLogin = document.querySelector("#btnLogin");
+    buttonRead = document.querySelector("#btnRead");
+    buttonCreate = document.querySelector("#btnCreate");
+    labelCreateStatus = document.querySelector("#labelCreateStatus");  
+  
+    console.log(selectorIdP);
+  };
+  
+  
+  buttonRead.setAttribute("disabled", "disabled");
+  buttonLogin.setAttribute("disabled", "disabled");
+  buttonCreate.setAttribute("disabled", "disabled");
+  
+  
+  
+  // 1a. Start Login Process. Call login() function.
+  function loginToSelectedIdP() {
+    const SELECTED_IDP = document.getElementById("select-idp").value;
+  
+    return login({
+      oidcIssuer: SELECTED_IDP,
+      redirectUrl: new URL("/", window.location.href).toString(),
+      clientName: "Getting started app"
+    });
+  }
+  
+  // 1b. Login Redirect. Call handleIncomingRedirect() function.
+  // When redirected after login, finish the process by retrieving session information.
+  async function handleRedirectAfterLogin() {
+    await handleIncomingRedirect(); // no-op if not part of login redirect
+  
+    const session = getDefaultSession();
+    if (session.info.isLoggedIn) {
+      // Update the page with the status.
+      document.getElementById("myWebID").value = session.info.webId;
+  
+      // Enable Read button to read Pod URL
+      buttonRead.removeAttribute("disabled");
+    }
+  }
+  
+  // The example has the login redirect back to the root page.
+  // The page calls this method, which, in turn, calls handleIncomingRedirect.
+  handleRedirectAfterLogin();
+  
+  // 2. Get Pod(s) associated with the WebID
+  async function getMyPods() {
+    const webID = document.getElementById("myWebID").value;
+    const mypods = await getPodUrlAll(webID, { fetch: fetch });
+  
+    // Update the page with the retrieved values.
+  
+    mypods.forEach((mypod) => {
+      let podOption = document.createElement("option");
+      podOption.textContent = mypod;
+      podOption.value = mypod;
+      selectorPod.appendChild(podOption);
+    });
+  }
+  
+  // 3. Create the Reading List
+  async function createList() {
+    labelCreateStatus.textContent = "";
+    const SELECTED_POD = document.getElementById("select-pod").value;
+  
+    // For simplicity and brevity, this tutorial hardcodes the  SolidDataset URL.
+    // In practice, you should add in your profile a link to this resource
+    // such that applications can follow to find your list.
+    const readingListUrl = `${SELECTED_POD}getting-started/readingList/myList`;
+  
+    let titles = document.getElementById("titles").value.split("\n");
+  
+    // Fetch or create a new reading list.
+    let myReadingList;
+  
+    try {
+      // Attempt to retrieve the reading list in case it already exists.
+      myReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
+      // Clear the list to override the whole list
+      let items = getThingAll(myReadingList);
+      items.forEach((item) => {
+        myReadingList = removeThing(myReadingList, item);
+      });
+    } catch (error) {
+      if (typeof error.statusCode === "number" && error.statusCode === 404) {
+        // if not found, create a new SolidDataset (i.e., the reading list)
+        myReadingList = createSolidDataset();
+      } else {
+        console.error(error.message);
+      }
+    }
+  
+    // Add titles to the Dataset
+    let i = 0;
+    titles.forEach((title) => {
+      if (title.trim() !== "") {
+        let item = createThing({ name: "title" + i });
+        item = addUrl(item, RDF.type, AS.Article);
+        item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
+        myReadingList = setThing(myReadingList, item);
+        i++;
+      }
+    });
+  
+    try {
+      // Save the SolidDataset
+      let savedReadingList = await saveSolidDatasetAt(
+        readingListUrl,
+        myReadingList,
+        { fetch: fetch }
+      );
+  
+      labelCreateStatus.textContent = "Saved";
+  
+      // Refetch the Reading List
+      savedReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
+  
+      let items = getThingAll(savedReadingList);
+  
+      let listcontent = "";
+      for (let i = 0; i < items.length; i++) {
+        let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
+        if (item !== null) {
+          listcontent += item + "\n";
+        }
+      }
+  
+      document.getElementById("savedtitles").value = listcontent;
+    } catch (error) {
+      console.log(error);
+      labelCreateStatus.textContent = "Error" + error;
+      labelCreateStatus.setAttribute("role", "alert");
+    }
+  }
+  
+  buttonLogin.onclick = function () {
+    loginToSelectedIdP();
+  };
+  
+  buttonRead.onclick = function () {
+    getMyPods();
+  };
+  
+  buttonCreate.onclick = function () {
+    createList();
+  };
+  
+  selectorIdP.addEventListener("change", idpSelectionHandler);
+  function idpSelectionHandler() {
+    if (selectorIdP.value === "") {
+        console.log("aiueo");
+      buttonLogin.setAttribute("disabled", "disabled");
+    } else {
+        console.log("kakikukeko");
+      buttonLogin.removeAttribute("disabled");
+    }
+  }
+  
+  selectorPod.addEventListener("change", podSelectionHandler);
+  function podSelectionHandler() {
+    if (selectorPod.value === "") {
+      buttonCreate.setAttribute("disabled", "disabled");
+    } else {
+      buttonCreate.removeAttribute("disabled");
+    }
+  }
+  
+</script>
+
+</body>
+
+</html>

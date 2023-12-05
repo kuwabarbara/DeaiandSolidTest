@@ -8,6 +8,10 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@inrupt/solid-client": "^1.30.2",
+    "@inrupt/solid-client-authn-browser": "^1.17.5",
+    "@inrupt/vocab-common-rdf": "^1.0.5",
+    "@inrupt/vocab-solid": "^1.0.4",
     "core-js": "^3.6.5",
     "dotenv": "^16.0.3",
     "firebase": "^9.22.2",

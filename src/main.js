@@ -12,13 +12,13 @@ Vue.config.productionTip = false;
 //console.log(process.env.openAI)
 
 const firebaseConfig = {
-  apiKey: process.env.apiKey,
-  authDomain: process.env.authDomain,
-  databaseURL: process.env.databaseURL,
+  apiKey: "AIzaSyCjOJEsaPMolxkOKBBp6oOEBxAgthuR4qY",
+  authDomain: "vuesc-ce12f.firebaseapp.com",
+  databaseURL: "https://vuesc-ce12f-default-rtdb.firebaseio.com",
   projectId: "vuesc-ce12f",
-  storageBucket: process.env.storageBucket,
-  messagingSenderId: process.env.messagingSenderId,
-  appId: process.env.appId
+  storageBucket: "vuesc-ce12f.appspot.com",
+  messagingSenderId: "339647178957",
+  appId: "1:339647178957:web:68f233f8a5079879c2e184"
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
