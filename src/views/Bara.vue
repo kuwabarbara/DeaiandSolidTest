@@ -33,6 +33,9 @@ import { fetch } from '@inrupt/solid-client-authn-browser'
 //import { getThingAll, getStringNoLocale } from "@inrupt/solid-client";
 //import { SCHEMA_INRUPT} from "@inrupt/vocab-common-rdf";
 
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import 'firebase/compat/database';
 
   // Import from "@inrupt/solid-client"
   import {
@@ -68,6 +71,26 @@ export default {
     },
     created() {
         this.completeLogin();
+
+
+
+        // 現在認証されているユーザーのUIDを取得する
+        const uid = firebase.auth().currentUser.uid;
+
+        // Realtime Databaseの参照を作成する
+        const dbRef = firebase.database().ref(`users/${uid}`);
+
+        // データを取得する
+        dbRef.once('value').then((snapshot) => {
+            const userData = snapshot.val(); // データをオブジェクト形式で取得する
+            const gender = userData.gender; // genderを取得する
+            const name = userData.name; // nameを取得する
+            const status = userData.status; // statusを取得する
+
+            console.log(gender);
+            console.log(name);
+            console.log(status);
+        });
         
     },
     methods: {

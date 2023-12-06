@@ -9,6 +9,9 @@
 
     <b>{{ user.name }}がログイン中</b>
 
+    <!--/Baraへのリンク-->>
+    <v-btn @click="goToPage('Bara')">Baraへのリンク</v-btn>
+
     <div class="tab-header">
       <div
         v-for="(tab, index) in tabs"
