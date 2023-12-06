@@ -115,7 +115,7 @@ export default {
                 console.log(`Logged in as ${getDefaultSession().info.webId}`);
                 const pods=await getPodUrlAll(getDefaultSession().info.webId,{ fetch: fetch });
                 console.log(pods);
-                this.PodUrl=pods[0];
+                this.PodUrl=pods[0]+"kuwaDeai/";
             }
             else{
                 console.log(`not login`);
