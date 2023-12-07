@@ -17,6 +17,9 @@
     読み込んだデータはこちら
     <br>
     {{ReadData}}
+    <br>
+    <br>
+    <button @click="accessCheck">access check</button>
 
     </div>
 </template>
@@ -49,8 +52,10 @@ import 'firebase/compat/database';
     getStringNoLocale,
     removeThing,
     saveSolidDatasetAt,
-    setThing
+    setThing,
   } from "@inrupt/solid-client";
+
+  import { universalAccess } from "@inrupt/solid-client";
   
   import { SCHEMA_INRUPT, RDF, AS } from "@inrupt/vocab-common-rdf";
 
@@ -91,6 +96,8 @@ export default {
             console.log(name);
             console.log(status);
         });
+
+
         
     },
     methods: {
@@ -106,6 +113,19 @@ export default {
         },
         async handleButtonClick() {
             this.updateToDoList(this.inputText);
+        },
+        // アクセス権の確認 データにアクセスできるかどうか
+        async accessCheck() {
+            universalAccess.getPublicAccess(
+            this.PodUrl,   // Resource
+            { fetch: fetch }                  // fetch function from authenticated session
+            ).then((returnedAccess) => {
+            if (returnedAccess === null) {
+                console.log("Could not load access details for this Resource.");
+            } else {
+                console.log("Returned Public Access:: ", JSON.stringify(returnedAccess));
+            }
+            });
         },
         async  checkLogin() {
             
