@@ -20,6 +20,8 @@
     <br>
     <br>
     <button @click="accessCheck">access check</button>
+    <br>
+    <button @click="accessButton">access button</button>
 
     </div>
 </template>
@@ -28,8 +30,7 @@
 
 <script>
 
-import {  login, getDefaultSession } from '@inrupt/solid-client-authn-browser'
-import { handleIncomingRedirect } from '@inrupt/solid-client-authn-browser'
+import {  getDefaultSession } from '@inrupt/solid-client-authn-browser'
 import { fetch } from '@inrupt/solid-client-authn-browser'
 //import { getSolidDataset, saveSolidDatasetAt } from "@inrupt/solid-client";
 //import { getPodUrlAll } from "@inrupt/solid-client";
@@ -58,6 +59,9 @@ import 'firebase/compat/database';
   import { universalAccess } from "@inrupt/solid-client";
   
   import { SCHEMA_INRUPT, RDF, AS } from "@inrupt/vocab-common-rdf";
+
+  import { handleIncomingRedirect, login} from '@inrupt/solid-client-authn-browser';
+  //import { acp_ess_2, asUrl } from "@inrupt/solid-client";
 
 export default {
     name: 'Bara',
@@ -135,12 +139,124 @@ export default {
                 console.log(`Logged in as ${getDefaultSession().info.webId}`);
                 const pods=await getPodUrlAll(getDefaultSession().info.webId,{ fetch: fetch });
                 console.log(pods);
-                this.PodUrl=pods[0]+"kuwaDeai/";
+                this.PodUrl=pods[0]+"kuwaDeaitxt/";
             }
             else{
                 console.log(`not login`);
             }
         },
+
+
+
+        //アクセス権を与えるボタン
+        async accessButton() {
+            //this.setupPolicyToMatchAgentsAndClients(this.PodUrl);
+            this.accessKuwa(this.PodUrl);
+            console.log(this.PodUrl);
+        },
+
+
+        //アクセス権を与える関数
+        async accessKuwa(resourceURL){
+            universalAccess.setAgentAccess(
+            resourceURL,         // Resource
+            "https://id.inrupt.com/kuwabarbara2",     // Agent
+            { read: true, write: false, },          // Access object
+            { fetch: fetch }                         // fetch function from authenticated session
+            ).then((newAccess) => {
+            this.logAccessInfo("https://id.inrupt.com/kuwabarbara2", newAccess, resourceURL)
+            });
+        },
+        logAccessInfo(agent, agentAccess, resource) {
+            console.log(`For resource::: ${resource}`);
+            if (agentAccess === null) {
+                console.log(`Could not load ${agent}'s access details.`);
+            } else {
+                console.log(`${agent}'s Access:: ${JSON.stringify(agentAccess)}`);
+            }
+        },
+
+        /*//リソースへのアクセス権を与える関数（ここではkuwabarbara2にアクセスの許可を与える）
+        async setupPolicyToMatchAgentsAndClients(resourceURL) {
+
+            const agentsToMatch = [ "https://id.inrupt.com/kuwabarbara2" ];
+            const clientIDsToMatch = [ "http://localhost:8080/bara" ];
+
+            try {
+                // 1. Fetch the SolidDataset with its Access Control Resource (ACR).
+                let resourceWithAcr = await acp_ess_2.getSolidDatasetWithAcr(
+                resourceURL,            // Resource whose ACR to set up
+                { fetch: fetch }       // fetch from the authenticated session
+                );
+
+                // 2. Initialize a new Matcher.
+                let appFriendsMatcher = acp_ess_2.createResourceMatcherFor(
+                resourceWithAcr,
+                "match-app-friends"
+                );
+
+                // 3. For the Matcher, specify the Agent(s) to match.
+                agentsToMatch.forEach(agent => {
+                appFriendsMatcher = acp_ess_2.addAgent(appFriendsMatcher, agent);
+                })
+
+                // 4. For the Matcher, specify the Client ID(s) to match.
+                clientIDsToMatch.forEach(clientID => {
+                appFriendsMatcher = acp_ess_2.addClient(appFriendsMatcher, clientID);
+                })
+
+                // 5. Add the Matcher definition to the Resource's ACR.
+                resourceWithAcr = acp_ess_2.setResourceMatcher(
+                resourceWithAcr,
+                appFriendsMatcher
+                );
+
+                // 6. Create a Policy for the Matcher.
+                let appFriendsPolicy = acp_ess_2.createResourcePolicyFor(
+                resourceWithAcr,
+                "app-friends-policy",
+                );
+
+                // 7. Add the appFriendsMatcher to the Policy as an allOf() expression.
+                // Since using allOf() with a single Matcher, could also use anyOf() expression
+
+                appFriendsPolicy = acp_ess_2.addAllOfMatcherUrl(
+                appFriendsPolicy,
+                appFriendsMatcher
+                );
+
+                // 8. Specify the access modes (e.g., allow Read and Write).
+                appFriendsPolicy = acp_ess_2.setAllowModes(appFriendsPolicy,
+                { read: true, write: true }
+                );
+
+                // 9. Apply the Policy to the resource.
+                resourceWithAcr = acp_ess_2.addPolicyUrl(
+                resourceWithAcr,
+                asUrl(appFriendsPolicy)
+                );
+
+                // 10. Add the Policy definition to the resource's ACR. 
+                resourceWithAcr = acp_ess_2.setResourcePolicy(
+                resourceWithAcr,
+                appFriendsPolicy
+                );
+
+                // 11. Save the modified ACR for the resource.
+                const updatedResourceWithAcr = await acp_ess_2.saveAcrFor(
+                resourceWithAcr,
+                { fetch: fetch }          // fetch from the authenticated session
+                );
+
+                console.log("Updated ACR: ", updatedResourceWithAcr);
+
+            } catch (error) {
+                console.error(error.message);
+            }
+        },*/
+
+
+
         async  completeLogin() {
             await handleIncomingRedirect();
         },
@@ -176,6 +292,9 @@ export default {
             // In practice, you should add in your profile a link to this resource
             // such that applications can follow to find your list.
             const readingListUrl = this.PodUrl;
+
+            console.log(readingListUrl);
+
         
             let titles = myChangedDataset.split("\n");
         
