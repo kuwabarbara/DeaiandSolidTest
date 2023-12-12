@@ -11,7 +11,7 @@ Vue.config.productionTip = false;
 
 //console.log(process.env.openAI)
 
-const firebaseConfig = {
+/*const firebaseConfig = {
   apiKey: "AIzaSyCjOJEsaPMolxkOKBBp6oOEBxAgthuR4qY",
   authDomain: "vuesc-ce12f.firebaseapp.com",
   databaseURL: "https://vuesc-ce12f-default-rtdb.firebaseio.com",
@@ -19,6 +19,15 @@ const firebaseConfig = {
   storageBucket: "vuesc-ce12f.appspot.com",
   messagingSenderId: "339647178957",
   appId: "1:339647178957:web:68f233f8a5079879c2e184"
+};*/
+const firebaseConfig = {
+  apiKey: "AIzaSyCNOvwEzB9RdIhPvF4rz4XaUWS4hrlzDI8",
+  authDomain: "vuedeai.firebaseapp.com",
+  databaseURL: "https://vuedeai-default-rtdb.firebaseio.com",
+  projectId: "vuedeai",
+  storageBucket: "vuedeai.appspot.com",
+  messagingSenderId: "1005449856509",
+  appId: "1:1005449856509:web:8e79aca4ee90e0b437c594"
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
