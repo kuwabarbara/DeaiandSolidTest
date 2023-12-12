@@ -22,6 +22,8 @@
     <button @click="accessCheck">access check</button>
     <br>
     <button @click="accessButton">access button</button>
+    <br>
+    <button @click="accessDeprivationButton">access deprivation button</button>
 
     </div>
 </template>
@@ -155,6 +157,12 @@ export default {
             console.log(this.PodUrl);
         },
 
+        async accessDeprivationButton() {
+            //this.setupPolicyToMatchAgentsAndClients(this.PodUrl);
+            this.accessDeprivationKuwa(this.PodUrl);
+            console.log(this.PodUrl);
+        },
+
 
         //アクセス権を与える関数
         async accessKuwa(resourceURL){
@@ -174,6 +182,18 @@ export default {
             } else {
                 console.log(`${agent}'s Access:: ${JSON.stringify(agentAccess)}`);
             }
+        },
+
+        //アクセス権をはく奪する関数
+        async accessDeprivationKuwa(resourceURL){
+            universalAccess.setAgentAccess(
+            resourceURL,         // Resource
+            "https://id.inrupt.com/kuwabarbara2",     // Agent
+            { read: false, write: false, },          // Access object
+            { fetch: fetch }                         // fetch function from authenticated session
+            ).then((newAccess) => {
+                console.log(`アクセス権をはく奪しました ${JSON.stringify(newAccess)}`);
+            });
         },
 
         /*//リソースへのアクセス権を与える関数（ここではkuwabarbara2にアクセスの許可を与える）
