@@ -24,6 +24,12 @@
     <button @click="accessButton">access button</button>
     <br>
     <button @click="accessDeprivationButton">access deprivation button</button>
+    <br>
+    <button @click="publicAccessButton">public access button</button>
+    <br>
+    <button @click="publicAccessDeprivationButton">public access deprivation button</button>
+    <br>
+
 
     </div>
 </template>
@@ -163,6 +169,18 @@ export default {
             console.log(this.PodUrl);
         },
 
+        //パブリックアクセス権を与えるボタン
+        async publicAccessButton() {
+            this.publicAccess(this.PodUrl);
+            console.log(this.PodUrl);
+        },
+
+        //パブリックアクセス権をはく奪するボタン
+        async publicAccessDeprivationButton() {
+            this.publicAccessDeprivation(this.PodUrl);
+            console.log(this.PodUrl);
+        },
+
 
         //アクセス権を与える関数
         async accessKuwa(resourceURL){
@@ -194,6 +212,36 @@ export default {
             ).then((newAccess) => {
                 console.log(`アクセス権をはく奪しました ${JSON.stringify(newAccess)}`);
             });
+        },
+
+        //パブリックアクセス権を与える関数
+        async publicAccess(resourceURL){
+            universalAccess.setPublicAccess(
+                resourceURL,  // Resource
+                { read: true, write: false },    // Access object
+                { fetch: fetch }                 // fetch function from authenticated session
+                ).then((newAccess) => {
+                if (newAccess === null) {
+                    console.log("Could not load access details for this Resource.");
+                } else {
+                    console.log("Returned Public Access:: ", JSON.stringify(newAccess));
+                }
+                });
+        },
+
+        //パブリックアクセス権をはく奪する関数
+        async publicAccessDeprivation(resourceURL){
+            universalAccess.setPublicAccess(
+                resourceURL,  // Resource
+                { read: false, write: false },    // Access object
+                { fetch: fetch }                 // fetch function from authenticated session
+                ).then((newAccess) => {
+                if (newAccess === null) {
+                    console.log("Could not load access details for this Resource.");
+                } else {
+                    console.log("Returned Public Access:: ", JSON.stringify(newAccess));
+                }
+                });
         },
 
         /*//リソースへのアクセス権を与える関数（ここではkuwabarbara2にアクセスの許可を与える）
