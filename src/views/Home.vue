@@ -1,0 +1,1790 @@
+<template>
+  <div class="tabs">
+
+    <v-app-bar color="primary" dark>
+      <div class="w-1/5 bg-gray-800 text-white pt-3 px-4">
+        <h1 class="font-semibold text-xl leading-tight">Deai</h1>
+      </div>
+    </v-app-bar>
+
+    <b>{{ user.name }}がログイン中</b>
+
+    <!--/Baraへのリンク-->>
+    <v-btn @click="goToPage('Bara')">Baraへのリンク</v-btn>
+
+    <div class="tab-header">
+      <div
+        v-for="(tab, index) in tabs"
+        :key="index"
+        class="tab"
+        :class="{ active: activeTab === index }"
+        @click="activeTab = index"
+      >
+        <span>{{ tab }}</span>
+      </div>
+    </div>
+
+    <div class="container">
+      <v-spacer/>
+      <v-spacer/>
+
+      <div>
+        <b>私について</b><br>
+        <v-img 
+            width="120"
+            height="80"
+            :src=user.img_url
+            :contain="true"></v-img> <br>
+        <span class="opacity-50" @click="directMessage(user)">名前：{{ user.name }}</span><br>
+        <span>性別：{{user.gender}}</span><br>
+        <span>メールアドレス：{{user.email}}</span><br>
+        <span>ステータスコメント：{{user.status}}</span><br>
+        <!--  <span>最適な相手は,,, ：{{matchingUser}}</span><br>  -->
+
+        <span> {{univName}} 学生です </span>
+      </div>
+      <v-spacer/>
+        <v-row justify="center">
+          <v-img class="rounded-circle" src="/image/無題.png" height="300" width="300" :contain="true" />
+        </v-row>
+      <v-spacer/>
+    </div>
+
+    <div class="tab-content">
+      <template v-if="activeTab === 0">
+        <h1>  {{univName}}コミュニティのユーザー一覧</h1>
+        <div class="container">
+          <div class="mt-2 flex items-center" v-for="useruser in users" :key="useruser.user_id">
+            
+            <!--
+            {{ useruser.user_id }} あ{{ useruser.ranking }} お<br>
+            -->
+            <div v-if="useruser.gender === user.gender">
+            </div>
+            <div v-else-if="mailDomain==extractDomain(useruser.email)">
+              <v-img 
+                  width="120"
+                  height="80"
+                  :src=useruser.img_url
+                  :contain="true"></v-img> <br>
+              <!-- <Avator :user=useruser.email /> -->
+              <span class="opacity-50" @click="directMessage(useruser)">名前：{{ useruser.name }}</span><br>
+                <div>
+                  <div v-if="useruser.gender">
+                    性別：{{useruser.gender}}
+                  </div>
+                  <div v-else>
+                    性別なし
+                  </div>
+                  <div v-if="useruser.peerid=='null'">
+                    オフライン
+                  </div>
+                  <div v-else>
+                    オンライン
+                  </div>
+                </div> 
+              <v-btn @click="goToPage('users/'+useruser.user_id)">この人の詳細画面へ</v-btn>
+
+            </div>
+          </div>
+        </div>
+
+
+
+      <!--  <div id="app"> -->
+      <!--    <input type="text" v-model="inputArray"> -->
+      <!--    <button @click="addRankingData">メソッドを呼び出す</button> -->
+      <!--  </div> -->
+
+
+        <!-- {{ matching_result }} -->
+        <hr>
+        <p>メッセージの送信をしたいユーザーの名前を上でクリックしてね</p>
+        <hr>
+        <b>チャット</b>
+
+
+        <hr>
+            <div class="mt-2 mb-4 flex" v-for="message in messages" :key="message.key">
+              <!-- <Avator :user="message.user" /> -->
+              <div v-if="message.user===user.name">
+                <div class="text-left">
+                  <v-container class="conversation-container">
+                  <v-card class="conversation-card">
+                    <div class="ml-2">
+                      <div class="font-bold">{{ message.user }}</div>
+                      <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                    </div>
+                  </v-card>
+                  </v-container>
+                </div>
+              </div>
+              <div v-else>
+                  <div class="text-right">
+                    <v-container class="conversation-container">
+                      <v-card class="conversation-card right-align">
+                        <div class="ml-2">
+                          <v-card-text>
+                            <div class="font-bold">{{ message.user }}</div>
+                            <v-label :style="{ backgroundColor: 'blue', color: 'white' }">{{ message.content }}</v-label>
+                          </v-card-text>
+                        </div>
+                        </v-card>
+                    </v-container>
+                  </div>
+              </div>
+            </div>
+        <hr>
+        <main class="overflow-y-scroll flex-grow">
+          <div class="flex flex-col ml-6 h-full">
+            <div class="flex-grow overflow-y-scroll">              
+            </div>
+            <div class="border border-gray-900 rounded mb-4">
+              <textarea autofocus
+                rows="5" cols="50"
+                class="w-full pt-4 pl-8 outline-none"
+                :placeholder="placeholder"
+                v-model="message"
+              ></textarea>
+                <div class="bg-gray-100 p-2">
+                  <v-btn
+                    class="bg-green-900 text-sm text-white font-bold py-1 px-2 rounded"
+                    @click="sendMessage"
+                  >送信</v-btn>
+                </div>
+              </div>
+          </div>
+        </main> 
+        <div class="flex-grow overflow-y-scroll">
+          <div class="mt-2 mb-4 flex">
+            <div class="ml-2">
+              <div>{{ message }}</div>
+            </div>
+          </div>
+        </div>
+                
+        <div>
+          <v-btn @click="makeCall">電話ボタン</v-btn>
+        </div>
+
+        <body>
+          <div class="frame">
+            <div id="wrapper">
+              <video id="local-video" width="400" height="300" autoplay muted></video>
+              <div class="label">自分の画面</div>
+              <div class="clear"></div>
+            </div>
+          </div>
+          <div class="frame">
+            <div id="wrapper">
+              <video id="remote-video" width="400" height="300" autoplay></video>
+              <div class="label">相手の画面</div>
+              <div class="clear"></div>
+            </div>
+          </div>
+
+        </body>
+
+        <div class="flex-grow overflow-y-scroll">
+
+          <div class="mt-2 mb-4 flex">
+            <div class="ml-2">
+              <div>{{ message }}</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div>
+          <v-btn v-on:click="generateMessage">返信考えてくれるボタン</v-btn>
+            <v-container class="conversation-container">
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  候補5 {{kaiwa}}
+                </div>
+              </v-card>
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  候補4 {{kaiwa2}}
+                </div>
+              </v-card>
+
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  候補3 {{kaiwa3}}
+                </div>
+              </v-card>
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  候補2 {{kaiwa4}}
+                </div>
+              </v-card>
+              <v-card class="conversation-card">
+                <div class="ml-2">
+                  候補1 {{kaiwa5}}
+                </div>
+              </v-card>
+
+            </v-container>
+        </div>
+
+        <br>
+
+        <div>
+          <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
+        </div>
+
+      </template>
+
+      <template v-if="activeTab === 1">
+        <h1>情報登録（名前は後から変更不可）</h1>
+        <form @submit.prevent="saveUserData">
+          <v-label for="name">名前：</v-label>
+          <input type="text" id="name" v-model="userData.name" required>
+          <br>
+          <v-label for="gender">性別：</v-label>
+          <select id="gender" v-model="userData.gender" required>
+            <option value="男性">男性</option>
+            <option value="女性">女性</option>
+          </select>
+          <br>
+          <v-label for="status">ステータスコメント：</v-label>
+          <input type="text" id="status" v-model="userData.status">
+          <br>
+          <v-btn type="submit">保存</v-btn>
+        </form>    
+
+        <hr>
+
+        <div>
+          <h2>時間割を入力してね</h2>
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>                
+                <th>Sat</th>
+                <th>Sun</th>
+
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(classes, index) in timetable" :key="index">
+                <td style="display: inline-block; white-space: nowrap;">{{ index + 1 }}限 </td>
+                <td v-for="(classData, day) in classes" :key="day">
+                  <input type="text" :value="classData" @input="updateClassData(index, day, $event.target.value)">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <v-btn @click="saveTimetable">Save</v-btn>
+        </div>
+
+
+        <hr>
+
+        <div>
+          <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
+        </div>
+
+      </template>
+
+      <template v-if="activeTab === 2">
+        <form @submit.prevent="uploadImage">
+          <input type="file" @change="onFileChange">
+          <v-btn type="submit">プロフィール写真をアップロード</v-btn>
+        </form>
+
+        <div>
+          <v-btn class="py-1 px-4 bg-gray-800 text-white rounded" @click="signOut">サインアウト</v-btn>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
+
+<style>
+  .frame {
+    display: inline-block;
+    text-align: center; /* ラベルを中央揃えにするために追加 */
+    margin-bottom: 20px; /* 要素間の間隔を調整するために追加 */
+  }
+
+  .video-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .video-wrapper video {
+    width: 400px;
+    height: 300px;
+    border: 10px solid #000;
+    padding: 20px;
+  }
+
+  .label {
+    text-align: center;
+    margin-top: 10px; /* ラベルの上部マージンを追加 */
+  }
+
+  .tab span {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #ccc;
+    border-radius: 5px;
+  }
+  .tab-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+  }
+  .conversation-container {
+    display: flex;
+    flex-direction: column-reverse;
+    padding: 20px;
+  }
+
+  .conversation-card {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0px 0px 10px #ccc;
+    margin-bottom: 10px;
+    padding: 10px;
+    width: fit-content;
+  }
+
+  .conversation-card.right-align {
+    align-self: flex-end;
+  }
+
+  .conversation-card .v-card-title {
+    padding: 0;
+  }
+
+  .conversation-card .v-icon {
+    font-size: 18px;
+    margin-right: 5px;
+  }
+  .container {
+    display: flex; /* 横並びにするためにflexboxを使用 */
+  }
+  .item {
+    width: 100px; /* アイテムの幅を指定 */
+    height: 100px; /* アイテムの高さを指定 */
+    background-color: gray; /* アイテムの背景色を指定 */
+    margin-right: 10px; /* アイテムの間に余白を指定 */
+  }
+  .rounded-circle {
+  border-radius: 100%;
+  }
+
+  .animated-text {
+  animation: animateText 0.5s linear forwards;
+  opacity: 0;
+}
+
+@keyframes animateText {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
+
+<script>
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import 'firebase/compat/database';
+
+import Peer from 'peerjs';
+//import Notification from "../components/icons/Notification";
+//import Search from "../components/icons/Search";
+//import Star from "../components/icons/Star";
+//import Cog from "../components/icons/Cog";
+//import Call from "../components/icons/Call";
+//import Information from "../components/icons/Information";
+//import AtSymbol from "../components/icons/AtSymbol";
+//import Avator from "../components/Avator";
+
+
+export default {
+  name: 'MyComponent', // コンポーネントの名前を指定する
+  data() {
+    return {
+      startTime: null, 
+
+      matching_result: [],
+
+      inputArray: [],
+
+      friendId: '',
+
+      myID: '',
+
+      receiverId: '',
+      statusMessage: 'Waiting for connection...',
+      lastPeerId: null,
+      peer: null,
+      conn: null,
+      msgContent: 'kuwaxkuwax',
+      inputMessage: '',
+
+      timetable: [
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" }
+      ],
+      kaiwa: "",
+      kaiwa2: "",
+      kaiwa3: "",
+      kaiwa4: "",
+      kaiwa5: "",
+
+      p2pmsg: "",
+
+      user: '',
+      users: [],
+      channel_name: '',
+      message: "",
+      messages: [],
+      placeholder: "",
+      channels: [],
+      channel_id: "",
+      userData: {
+        name: '',
+        gender: '',
+        status: '',
+        email: '',
+        img_url : ''
+      },
+      dialog: false,
+      tabs: ['チャットルーム', '情報登録', 'プロフィール写真'],
+      activeTab: 0,
+      mailDomain: "",
+      univName: "",
+      univWebPage: "",
+
+
+      localVideo: "",
+      remoteVideo: "",
+
+      matchingUser: 'free',
+      kokuhakuzumi: 0,  //何人の人に告白したか
+      kyohisareta: 0,   //告白されたら1になる
+      kokuhakusareta: 0,//拒否されたら0になる
+
+      // Video and audio are enabled for this call.
+
+      localStream: "",
+      MediaConfigurtion: {
+        audio: true,
+        video: true,
+      },
+      
+    };
+  },
+  components: {
+
+    //Notification,
+    //Search,
+    //Star,
+    //Cog,
+    //Call,
+    //Information,
+    //AtSymbol,
+    //Avator
+  },
+  created(){
+    this.timetable = [
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" },
+        { "Mon": "", "Tue": "", "Wed": "","Thu": "","Fri": "" }
+      ]
+    // 現在認証されているユーザーのUIDを取得する
+    const uid = firebase.auth().currentUser.uid;
+    this.myID=uid
+
+    // Realtime Databaseの参照を作成する
+    const dbRef = firebase.database().ref(`users/${uid}`);
+
+    // データを取得する
+    dbRef.once('value').then((snapshot) => {
+      const userData = snapshot.val(); // データをオブジェクト形式で取得する
+      const gender = userData.gender; // genderを取得する
+      const name = userData.name; // nameを取得する
+      const status = userData.status; // statusを取得する
+
+
+      console.log("えええええ")
+      // 取得したデータを使用する
+      console.log(`gender: ${gender}, name: ${name}`);
+      this.user.gender=gender
+      this.user.name=name
+      this.user.img_url=userData.img_url
+      this.user.status=status
+      this.mailDomain=this.extractDomain(userData.email)
+
+      const domain = this.mailDomain; // 取得したい大学のドメイン名
+      this.getUniversityInfo(domain)
+        .then((result) => {
+          const universityName = result.universityName;
+          const universityWeb = result.universityWeb;
+          console.log("ううううう"+universityName)
+          console.log("ええ"+universityWeb+"けけ");
+          this.univName=universityName;
+          this.univWebPage=universityWeb
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
+
+        // Firebase Realtime Databaseからデータを取得する
+        firebase.database().ref('timetables').child(uid).once('value')
+          .then((snapshot) => {
+            // 取得したデータをVue.jsのデータに代入する
+            const data = snapshot.val();
+            for (let i = 0; i < 10; i++) {
+              for (let day in data[i]) {
+                const index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
+                if (index >= 0) {
+                  this.timetable[i][index] = data[i][day];
+                }
+              }
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+
+    });
+
+    console.log("あああああああああ")
+    console.log(this.user.gender)
+
+    if(this.checkGender()){
+      console.log("男性です")
+    }else{
+      console.log("女性です")
+    }
+
+    //this.getRanking()
+    console.log("ランキング表です")
+
+
+    console.log(this.myID)
+
+    //this.allKokuhaku();
+
+    /*if(this.checkGender){
+      this.matchMake()
+    }*/
+
+    //this.matchMake()
+
+
+  },
+  methods: {
+    initialize() {
+      this.localVideo= document.getElementById("local-video");
+      this.remoteVideo= document.getElementById("remote-video");
+
+      this.peer = new Peer(null, { debug: 2 });
+
+      this.peer.on('open', (id) => {
+        if (this.peer.id === null) {
+          console.log('Received null id from peer open');
+          this.peer.id = this.lastPeerId;
+        } else {
+          this.lastPeerId = this.peer.id;
+        }
+        console.log('ID: ' + this.peer.id);
+        console.log('aaa: ' + id);
+
+
+        var uid = firebase.auth().currentUser.uid;
+        var peerid = this.peer.id;
+
+        // ユーザーのデータへの参照を取得
+        var userRef = firebase.database().ref('users/' + uid);
+
+        // 既存のデータを読み取る
+        userRef.once('value', function(snapshot) {
+            var userData = snapshot.val();
+
+            // 新しいデータを追加
+            userData.peerid = peerid;
+
+            // 更新したデータを書き込む
+            userRef.set(userData);
+        });
+
+      });
+
+      this.peer.on('connection', (c) => {
+        if (this.conn && this.conn.open) {
+          c.on('open', () => {
+            c.send('Already connected to another client');
+            setTimeout(() => c.close(), 500);
+          });
+          return;
+        }
+
+        this.conn = c;
+        console.log('Connected to: ' + this.conn.peer);
+        this.statusMessage = 'Connected';
+
+        this.receiverId=this.conn.peer;
+
+        this.ready();
+
+      });
+
+      this.peer.on('disconnected', () => {
+        this.statusMessage = 'Connection lost. Please reconnect';
+        console.log('Connection lost. Please reconnect');
+        this.peer.id = this.lastPeerId;
+        this.peer._lastServerId = this.lastPeerId;
+        //this.peer.reconnect();
+      });
+
+      this.peer.on('close', () => {
+        this.conn = null;
+        this.statusMessage = 'Connection destroyed. Please refresh';
+        console.log('Connection destroyed');
+      });
+
+      this.peer.on('error', (err) => {
+        console.log(err);
+        alert('' + err);
+      });
+
+      this.listenCall();
+
+    },
+
+    gsAlgorithm(maleUsers, femaleUsers) {
+      // マッチング結果を格納するオブジェクト
+      var matches = {};
+
+      // 男性ユーザーを保持するスタック
+      var maleStack = [...maleUsers];
+
+      while (maleStack.length > 0) {
+        var maleUser = maleStack.pop(); // スタックから男性ユーザーを取り出す
+        var femaleId = maleUser.ranking[0]; // 男性ユーザーの最も優先度の高い女性のID
+
+        if (!matches[femaleId]) {
+          // 女性がまだマッチしていない場合
+          matches[femaleId] = maleUser.user_id; // マッチング結果を記録
+        } else {
+          var currentMatch = matches[femaleId];
+
+          // 現在のマッチングと比較して、より優れた男性ユーザーがいるか判定
+          if (femaleUsers[femaleId].ranking.indexOf(maleUser.user_id) < femaleUsers[femaleId].ranking.indexOf(currentMatch)) {
+            // より優れた男性ユーザーが見つかった場合、現在のマッチングを取り消し、新たなマッチングを記録
+            matches[femaleId] = maleUser.user_id;
+            maleStack.push(femaleUsers[femaleId]); // 古いマッチングの男性ユーザーをスタックに戻す
+          } else {
+            maleStack.push(maleUser); // 新たなマッチングを断った男性ユーザーをスタックに戻す
+          }
+        }
+      }
+
+      return matches;
+    },
+
+    gsAlgorithm2(maleUsers, femaleUsers) {
+      // マッチング結果を格納するオブジェクト
+      var matches = {};
+
+      // 男性ユーザーのリストを作成
+      var freeMaleUsers = maleUsers.slice();
+
+      // 女性ユーザーのマッチング済み情報を格納するオブジェクト
+      var femaleMatches = {};
+
+      // 未マッチングの男性ユーザーが存在する限り繰り返す
+      while (freeMaleUsers.length > 0) {
+        var maleUser = freeMaleUsers[0];
+
+        // 男性ユーザーの選好リストの先頭の女性ユーザーを取得
+        var femaleUser = femaleUsers.find(user => user.user_id === maleUser.ranking[0]);
+
+        // 女性ユーザーが既に他の男性ユーザーとマッチングしている場合
+        if (femaleMatches[femaleUser.user_id] !== undefined) {
+          var currentMatchedMaleUser = maleUsers.find(user => user.user_id === femaleMatches[femaleUser.user_id]);
+
+          // 現在のマッチング相手と比較して、男性ユーザーの方が優先順位が高い場合
+          if (femaleUser.ranking.indexOf(currentMatchedMaleUser.user_id) > femaleUser.ranking.indexOf(maleUser.user_id)) {
+            // 現在のマッチングを解除
+            matches[currentMatchedMaleUser.user_id] = undefined;
+            freeMaleUsers.push(currentMatchedMaleUser);
+          }
+          else {
+            // 他の男性ユーザーとマッチングしているため、次の選好を処理
+            maleUser.ranking.shift();
+            continue;
+          }
+        }
+
+        // 男性ユーザーと女性ユーザーをマッチングさせる
+        matches[maleUser.user_id] = femaleUser.user_id;
+        femaleMatches[femaleUser.user_id] = maleUser.user_id;
+
+        // マッチングが完了した男性ユーザーをフリーリストから削除
+        freeMaleUsers.shift();
+      }
+
+      // マッチング結果を返す
+      return matches;
+    },
+
+
+    //ログイン中のユーザーが男性だったらtrueを返す
+    async checkGender() {
+      const uid = firebase.auth().currentUser.uid;
+      console.log("私は" + uid);
+
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      try {
+          const snapshot = await usersRef.once("value");
+          const usersData = snapshot.val();
+
+          for (const key in usersData) {
+              const user = usersData[key];
+              if (uid === key) {
+                  console.log("これは現在ログイン中のユーザーの情報です");
+                  console.log("こいつの性別は" + user.gender);
+                  if (user.gender.trim().normalize() === "男性".trim().normalize()) {
+                      console.log("確認しました");
+                      return true;
+                  } else {
+                      console.log("確認できませんでした");
+                      return false;
+                  }
+              }
+              console.log("Node Key:", key);
+              console.log("user_id:", user.user_id);
+              console.log("peerid:", user.peerid);
+              console.log("gender:", user.gender);
+          }
+      } catch (error) {
+          console.error("データの取得に失敗しました:", error);
+          return false;
+      }
+  },
+
+    //userIDを渡したらそのユーザーのpeerIDを返す
+    async getPeerID(para_user_id) {
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+
+        for (const key in usersData) {
+          const user = usersData[key];
+          console.log("このユーザーは" + user.user_id);
+          console.log("さがしてるのは" + para_user_id);
+
+          if (para_user_id === user.user_id) {
+            console.log("Yes");
+            return user.peerid;
+          } else {
+            console.log("No");
+          }
+        }
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+      return "wakaran";
+    },
+
+
+    async matchMake() {
+      console.log("マッチメイクを開始します！")
+      this.kokuhakusareta = 0;
+      this.kyohisareta = 0;
+
+      let cnt = 0; // ランキング表に何人のユーザーがいるか
+
+      // ランキング表に何人のユーザーがいるかカウントする
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx;
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+            console.log(item);
+            cnt = cnt + 1;
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+
+      let index = this.kokuhakuzumi;
+      let prevKokuhakusareta = this.kokuhakusareta;
+      let unchangedDuration = 0;
+
+      const interval = setInterval(() => {
+        if (this.kokuhakusareta !== prevKokuhakusareta) {
+          // this.kokuhakusaretaに変化があった場合
+          clearInterval(interval); // 監視を停止
+          console.log("this.kokuhakusaretaに変化があったため、ループを脱出します。");
+          // ここに変化があった場合の処理を記述
+        } else {
+          // 10秒間変化がなかった場合
+          unchangedDuration += 1000; // 1秒間の変化がない期間を追加
+
+          if (unchangedDuration >= 10000) {
+            // 10秒以上変化がない場合
+            clearInterval(interval); // 監視を停止
+            console.log("10秒以上変化がないため、ループを次に進めます。");
+            // ここに次に進む処理を記述
+          }
+        }
+
+        if (index < cnt) {
+          this.KokuhakuWithRank(index);
+          index++;
+        }
+        else{
+          clearInterval(interval); // 監視を停止
+        }
+      }, 1000);
+    },
+
+
+   //上位target番目(ゼロ位から数える)の人に告白する
+   async KokuhakuWithRank(target) {
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          var cnt=0
+
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+
+            //
+            if(cnt==target){
+              //ランキング上位のpeerIDから発表する
+              this.getPeerID(item).then(peerID => {
+                console.log(item+"さんは"+peerID); // ユーザーのpeerIDが表示される
+                this.Kokuhaku(peerID);
+                this.kokuhakuzumi=target;
+              }).catch(error => {
+                console.error(error); // エラーが発生した場合の処理
+              });
+            }
+
+            cnt=cnt+1
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+        
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+    },
+
+
+
+
+/*
+    //ログイン中のユーザーのランキング表のユーザー全員に告白する関数
+    async allKokuhaku() {
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+            //console.log(item);
+
+            //ランキング上位のpeerIDから発表する
+            this.getPeerID(item).then(peerID => {
+              console.log(item+"さんは"+peerID); // ユーザーのpeerIDが表示される
+              this.Kokuhaku(peerID)
+            }).catch(error => {
+              console.error(error); // エラーが発生した場合の処理
+            });
+
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+        
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+    },*/
+
+    //パラメータのユーザーが何位にランクされているか返す関数 そのユーザーが存在しないなら-1を返す
+    async getRank(user_xxx) {
+      const uid = firebase.auth().currentUser.uid;
+      const database = firebase.database();
+      const usersRef = database.ref("users");
+
+      var xxx
+
+      try {
+        const snapshot = await usersRef.once("value");
+        const usersData = snapshot.val();
+        Object.keys(usersData).forEach(key => {
+          const user = usersData[key];
+          if (uid === key) {
+            xxx = user.ranking;
+          }
+        });
+
+
+        try {
+          // JSON文字列を配列に変換
+          const arrayFromJson = JSON.parse(xxx);
+
+          var cnt=0
+          // 配列の各要素を一つずつ表示
+          arrayFromJson.forEach(item => {
+            //console.log(item);
+
+            if(item==user_xxx){
+              return cnt
+            }
+
+            cnt=cnt+1
+
+
+          });
+        } catch (error) {
+          console.error("Invalid JSON format:", error);
+        }
+        
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+      }
+
+      return -1
+    },    
+
+    //拒否してきたユーザーを取得
+    extractUserId(inputString) {
+      const pattern = /^kyohifrom(\w+)/; // 正規表現パターン: 文章の先頭(^)に"kyohifrom" があることを示し、その後に1つ以上の単語文字(\w+)が続く
+      const match = inputString.match(pattern);
+
+      if (match && match[1]) {
+        return match[1]; // マッチした部分の最初のグループがユーザーIDとなる
+      } else {
+        return null; // マッチしない場合はnullを返す
+      }
+    },
+
+    getSubstringAfterKokuhakuFrom(inputString) {
+      const keyword = "kokuhakufrom";
+      if (inputString.startsWith(keyword)) {
+        return inputString.slice(keyword.length);
+      } else {
+        return null; // もし該当する文字列が見つからなかった場合はnullを返す（または任意の値を返す）
+      }
+    },
+
+    listenCall() {
+        var getUserMedia =
+          navigator.getUserMedia ||
+          navigator.webkitGetUserMedia ||
+          navigator.mozGetUserMedia;
+        this.peer.on("call", (call) => {
+          getUserMedia(this.MediaConfigurtion, (stream) => {
+            this.localVideo.srcObject = stream;
+            this.locaStream = stream;
+            
+            call.answer(stream);
+            call.on("stream", (remoteStream) => {
+              this.remoteVideo.srcObject = remoteStream;
+            });
+          });
+        });
+      },
+
+      makeCall() {
+      var getUserMedia =
+        navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia;
+      getUserMedia(this.MediaConfigurtion, (stream) => {
+        this.localVideo.srcObject = stream;
+        this.localStream = stream;
+
+        const call = this.peer.call(this.receiverId, stream);
+        call.on("stream", (remoteStream) => {
+          this.remoteVideo.srcObject = remoteStream;
+        });
+      });
+    },
+
+    // Firebase Realtime Databaseへのランキングデータの追加メソッド
+    addRankingData() {
+      // Firebase Realtime Databaseにアクセス
+      const database = firebase.database();
+
+      var userId = firebase.auth().currentUser.uid;
+
+
+      // ユーザーのデータを取得
+      database.ref("users/" + userId).once("value")
+        .then((snapshot) => {
+          const userData = snapshot.val();
+
+          // ランキングのデータを追加
+          userData.ranking = this.inputArray;
+
+          // 更新されたデータを保存
+          return database.ref("users/" + userId).set(userData);
+        })
+        .then(() => {
+          console.log("ランキングが更新されました。");
+        })
+        .catch((error) => {
+          console.error("ランキングの更新中にエラーが発生しました:", error);
+        });
+    },
+
+
+    createAvatarStream(originalStream) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const videoTrack = originalStream.getVideoTracks()[0];
+
+        canvas.width = videoTrack.width;
+        canvas.height = videoTrack.height;
+        context.drawImage(this.localVideo, 0, 0, canvas.width, canvas.height);
+        context.filter = 'blur(10px)'; // モザイク化
+        const avatarStream = canvas.captureStream();
+
+        return avatarStream;
+    },
+
+
+
+    ready() {
+      this.conn.on('data', (data) => {
+        /*if(this.startTime!=null){
+          const endTime = new Date().getTime(); // 終了時間を記録
+          const elapsedTime = endTime - this.startTime; // 経過時間を計算（ミリ秒）
+
+          console.log(`処理にかかった時間: ${elapsedTime} ミリ秒`);
+        }*/
+        
+        console.log('Data received:');
+        console.log(data);
+        console.log((typeof data))
+
+        if((typeof data)!=String){
+          console.log("かかった時間は")
+          console.log(new Date().getTime()-data)
+        }
+
+
+        //誰かから告白を受け取った場合
+        if(this.getSubstringAfterKokuhakuFrom(data)!=null){
+          console.log("告白された")
+          if (this.conn) {
+            this.conn.close();
+          }
+
+          this.kokuhakusareta=1
+
+          //誰ともくっついてなかったら受理
+          if(this.matchingUser=="free"){
+            this.matchingUser=this.getSubstringAfterKokuhakuFrom(data);
+
+            //受理したと相手にP2Pで送る処理
+            //this.Kokuhaku(this.getSubstringAfterKokuhakuFrom(data))
+            //ランキング上位のpeerIDから発表する
+            this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+              this.Kokuhaku(peerID)
+            }).catch(error => {
+              console.error(error); // エラーが発生した場合の処理
+            });
+          }
+          else{
+            //すでに誰かとくっついていたらランキング表によっては乗り換える処理
+
+            //どちらも存在するユーザーidだったら
+            if(this.getRank(this.getSubstringAfterKokuhakuFrom(data))!=-1 && this.getRank(this.matchingUser)!=-1){
+              //マッチしている人に告白されたら
+              if(this.getSubstringAfterKokuhakuFrom(data) == this.matchingUser){
+                console.log("マッチしている人に告白された")
+              }
+              //そのままだったら
+              else if(this.getRank(this.getSubstringAfterKokuhakuFrom(data))> this.getRank(this.matchingUser)){
+                //いま告白してきた相手に拒否したとP2Pで送る処理を書く
+                this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+                  this.kyohi(peerID)
+                }).catch(error => {
+                  console.error(error); // エラーが発生した場合の処理
+                });
+              }
+              //乗り換える場合
+              else{
+                //キープの相手に拒否したとP2Pで送る処理を書く
+                this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+                  this.kyohi(peerID)
+                }).catch(error => {
+                  console.error(error); // エラーが発生した場合の処理
+                });
+
+                //いま告白してきた相手に受理したとP2Pで送る処理
+                this.getPeerID(this.getSubstringAfterKokuhakuFrom(data)).then(peerID => {
+                  this.Kokuhaku(peerID)
+                }).catch(error => {
+                  console.error(error); // エラーが発生した場合の処理
+                });
+              }
+            }
+ 
+          }
+
+
+
+        }
+
+        //誰かから拒否を受け取った場合
+        if(this.extractUserId(data)!=null){          
+          this.kyohisareta=1
+
+          //マッチしている相手から拒否された場合
+          if(this.matchingUser==this.extractUserId(data)){
+            console.log("振られた")
+            this.matchingUser="free"
+            this.matchMake()
+          }
+        }
+
+        let currentIndex = 0;
+        const interval = 100; // 各文字の表示間隔（ミリ秒）
+
+        const animate = () => {
+          this.p2pmsg += data[currentIndex];
+          currentIndex++;
+
+          if (currentIndex < data.length) {
+            setTimeout(animate, interval);
+          }
+        };
+
+        setTimeout(animate, interval);
+
+      });
+
+      this.conn.on('close', () => {
+        this.conn = null;
+      });
+    },
+
+    join() {
+      if (this.conn) {
+        this.conn.close();
+      }
+
+      
+
+      this.conn = this.peer.connect(this.receiverId, { reliable: true });
+
+      this.conn.on('open', () => {
+        
+        console.log('Connected to: ' + this.conn.peer);
+        this.statusMessage = 'Connected';
+        //this.conn.send(this.msgContent);
+        this.conn.send(this.user.name+"さんからのメッセージ： "+ this.inputMessage+"\n"); // テキストボックスの内容を送信する
+      });
+    },
+
+
+    //指定したpeerIDの人に告白する
+    Kokuhaku(id) {
+
+      /*if (this.conn) {
+        this.conn.close();
+      }*/
+
+      if(id=="null") return      
+      if(id==null) return
+
+      console.log(id+"さんに告白する")
+
+      //現在ログイン中のidを取得
+      //const uid = firebase.auth().currentUser.uid;
+      
+      //測定開始
+      this.startTime = new Date().getTime();
+
+      this.conn = this.peer.connect(id, { reliable: true });
+
+      console.log("あかさたな")
+
+
+      this.conn.on('open', () => {
+        console.log("はまやらわ")
+        console.log("告白を送信")
+        //this.conn.send("kokuhaku"+"from"+uid); 
+        this.conn.send(this.startTime);        
+        /*this.conn.send("testtest");        
+        this.conn.send("testtest");        
+        this.conn.send("testtest");*/
+        
+        const myID = this.myID;
+
+        /*for(let i=0;i<10;i++){
+          if(this.myID!=""){
+            break
+          }
+          this.conn.send("testtest");
+        }*/
+
+        this.conn.send("kokuhaku"+"from"+myID);
+
+
+      });
+
+            /*if (this.conn) {
+        this.conn.close();
+      }*/
+
+    },
+
+
+    //指定したpeerIDの人を拒否する
+    Kyohi(id) {
+      /*if (this.conn) {
+        this.conn.close();
+      }*/
+
+      if(id=="null") return      
+      if(id==null) return
+
+
+      //現在ログイン中のidを取得
+      //const uid = firebase.auth().currentUser.uid;
+      
+
+      this.conn = this.peer.connect(id, { reliable: true });
+
+
+      this.conn.on('open', () => {
+        this.conn.send("testtest");        
+        
+        //this.conn.send("kyohi"+"from"+uid); 
+        const myID = this.myID;
+
+
+        this.conn.send("kyohi"+"from"+myID); 
+      });
+    },
+
+    
+
+    connect() {
+      //送信する相手がオフラインの場合
+      if(this.receiverId=='' || this.receiverId=='null'){
+        console.log("相手はオフライン");
+        //this.sendMessage();
+      }
+      //送信する相手がオンラインの場合
+      else{
+        this.join();
+      }
+    },
+    updateClassData(index, day, value) {
+      this.timetable[index][day] = value;
+    },
+    saveTimetable() {
+      const user_id = firebase.auth().currentUser.uid
+      const db = firebase.database()
+
+      // Firebase Realtime Databaseに時間割データを保存する
+      db.ref(`timetables/${user_id}`).set(this.timetable)
+        .then(() => console.log('Timetable saved!'))
+        .catch(error => console.error('Error saving timetable:', error));
+
+
+      
+    },
+    async getUniversityInfo(domain) {
+      const url = `http://universities.hipolabs.com/search?domain=${domain}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        const universityName = data[0].name;
+        const universityWeb = data[0].web_pages[0];
+
+        
+        return { universityName, universityWeb };
+      } else {
+        throw new Error("No university found for the given domain");
+      }
+    },
+    async blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+          const base64data = reader.result.split(",")[1];
+          resolve(base64data);
+        };
+        reader.onerror = () => {
+          reject(new Error("Failed to convert blob to base64"));
+        };
+      });
+    },
+    getStringAfterColon(str) {
+      const index = str.indexOf(':');
+      if (index === -1) {
+        return str;
+      }
+      return str.substring(index + 1);
+    },
+
+    generateMessage(){
+      var kaiwa=""
+
+      kaiwa+=this.p2pmsg
+
+      var apiKey=process.env.openAI
+
+      // GPT-3による返信の生成
+      fetch("https://api.openai.com/v1/engines/davinci/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          prompt: kaiwa,
+          max_tokens: 50,
+          n: 5, // 生成される返信の数
+          temperature: 0.7 // 返信の多様性
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const choices = data.choices;
+        const replies = [];
+        for(let i=0; i<choices.length; i++){
+          const reply = choices[i].text.trim();
+          replies.push(reply.split("\n")[0]);
+        }
+        console.log(replies); // 複数の候補を表示
+        this.kaiwa = this.getStringAfterColon(replies[0]); // 1番目の候補を使用する
+        this.kaiwa2 = this.getStringAfterColon(replies[1]); // 1番目の候補を使用する
+        this.kaiwa3 = this.getStringAfterColon(replies[2]); // 1番目の候補を使用する
+        this.kaiwa4 = this.getStringAfterColon(replies[3]); // 1番目の候補を使用する
+        this.kaiwa5 = this.getStringAfterColon(replies[4]); // 1番目の候補を使用する
+
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    },
+    extractDomain(email) {
+      // '@'の位置を探す
+      const atIndex = email.indexOf('@');
+      
+      // ドメインを含まない場合はnullを返す
+      if (atIndex === -1) {
+        return null;
+      }
+      
+      // '@'以降の文字列を抽出する
+      const domain = email.slice(atIndex + 1);
+      
+      // ドメインを返す
+      return domain;
+    },    
+    getUserImage(userId) {
+      const storage = firebase.storage()
+      const userImageRef = storage.ref().child(`users/${userId}/profile.jpg`)
+      const url = userImageRef.getDownloadURL()
+      console.log("あ"+url+"あ")
+      return url
+    },
+    saveUserData() {
+      // Firebase Authenticationで認証されたユーザーのIDを取得する
+      const user_id = firebase.auth().currentUser.uid
+
+      // ユーザーデータにユーザーIDを追加する
+
+      //名前の変更を不可能にする
+      if(this.user.name!=null){
+        this.userData.name=this.user.name
+      }
+
+      var x = ""
+      if(this.user.img_url!=null){
+        x=this.user.img_url
+      }
+
+      this.userData.img_url=x
+
+      this.userData.user_id = user_id
+
+      this.userData.email=this.user.email
+
+      // Firebase Realtime Databaseにデータを保存する
+      firebase.database().ref('users').child(user_id).set(this.userData)
+        .then(() => {
+          console.log('データを保存しました')
+          // 保存後にフォームをリセットする
+          this.userData = {
+            name: '',
+            gender: '',
+            status: ''
+          }
+        })
+        .catch(error => {
+          console.error('データの保存に失敗しました', error)
+        })
+    },
+
+    sugukesu() {
+      console.log("すぐけすやつ")
+    },
+
+    goToPage(pageName) {
+      this.$router.push({ path: '/' + pageName })
+    },
+    
+    // ファイルが選択された時に呼ばれるメソッド
+    onFileChange(event) {
+      this.file = event.target.files[0];
+    },
+    // ファイルをアップロードするメソッド
+    async uploadImage() {
+      const storageRef = firebase.storage().ref();
+
+      // ユーザーのUIDとファイル名
+      const uid = this.user.uid;
+      const fileName = "profile.jpg";
+
+      // Storageに画像をアップロードする
+      const path = `users/${uid}/${fileName}`;
+      const fileRef = storageRef.child(path);
+      fileRef.put(this.file).then(() => {
+        console.log("アップロードが完了しました。");
+      });
+
+      const db = firebase.database()
+      const usersRef = db.ref('users')
+      const userId = uid // ユーザーID
+
+      const storage = firebase.storage()
+      const userImageRef = storage.ref().child(path)
+      const url = await userImageRef.getDownloadURL()
+      console.log(url)
+      const img_url = url // 追加するimg_urlの値
+
+      // ユーザーの情報を取得して更新する
+      usersRef.child(userId).once('value', snapshot => {
+        const userData2 = snapshot.val()
+        if (userData2) {
+          userData2.img_url = img_url // img_urlを追加
+          usersRef.child(userId).set(userData2) // 更新したユーザー情報をデータベースに保存
+          this.user.img_url=img_url
+        }
+      })
+
+
+    },
+
+    signOut() {
+      firebase.auth().signOut();
+      this.$router.push('/signin');
+    },
+    sendMessage() {
+      const newMessage = firebase
+        .database()
+        .ref("messages")
+        .child(this.channel_id)
+        .push();
+
+      const key_id = newMessage.key;
+
+      newMessage.set({
+        key: key_id,
+        content: this.message,
+        user: this.user.name,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      this.message = "";
+    },
+    directMessage(user) {
+      console.log("directmessageをクリック"+user.peerid)
+      this.receiverId= user.peerid;
+
+
+      this.messages = [];
+
+      this.user.uid > user.user_id
+        ? (this.channel_id = this.user.uid + "-" + user.user_id)
+        : (this.channel_id = user.user_id + "-" + this.user.uid);
+
+      if (this.channel_id != "") {
+        firebase
+          .database()
+          .ref("messages")
+          .child(this.channel_id)
+          .off();
+      }
+
+      this.channel_name = user.name;
+      this.placeholder = user.name + "へのメッセージ";
+
+      firebase
+        .database()
+        .ref("messages")
+        .child(this.channel_id)
+        .on("child_added", snapshot => {
+          this.messages.push(snapshot.val());
+        });
+    }
+  },
+
+  mounted() {
+    // 特定の時刻(例: 2023年8月1日 15時30分)に関数を実行する
+    /*const targetDate = new Date('2023-08-03T20:30:00');
+
+    // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
+    const delay = targetDate.getTime() - Date.now();
+    if(this.checkGender){
+          // 遅延後に指定した関数を実行する
+        setTimeout(this.matchMake, delay);
+        setTimeout(this.sugukesu, delay);
+    }*/
+
+    // 特定の時刻(例: 2023年8月3日 20時30分)に関数を実行する
+    /*const targetDate = new Date('2023-08-05T03:13:00');
+
+    // 現在時刻と目標時刻との差を計算し、その差だけsetTimeoutで遅延させる
+    const delay = targetDate.getTime() - Date.now();
+
+    this.checkGender().then(result => {
+    if (result) {
+      // 遅延後に指定した関数を実行する
+      setTimeout(() => {
+          this.matchMake(); // matchMake関数を実行
+          this.sugukesu(); // sugukesu関数を実行
+      }, delay);
+
+      }
+    });*/
+
+    //this.matchMake()
+
+
+
+
+
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js';
+    //script.onload = () => {
+      //this.connectButton.disabled = false;
+    //};
+    document.head.appendChild(script);
+
+    this.user = firebase.auth().currentUser;
+
+    
+    this.initialize();
+
+    firebase
+      .database()
+      .ref("users")
+      .on("child_added", snapshot => {
+        this.users.push(snapshot.val());
+      });
+
+
+      const db = firebase.database();
+      const isOnlineRef = db.ref(`users/${this.user.uid}/peerid`);
+      isOnlineRef.onDisconnect().set("null");
+
+
+      console.log(this.users)
+
+
+
+      // Firebase Realtime Databaseへの参照を取得
+      const databaseRef = firebase.database().ref('users');
+      // データの変更を監視して配列データを取得
+      databaseRef.on('value', (snapshot) => {
+        // データのスナップショットを取得
+        const data = snapshot.val();
+        // 配列データを取得
+        const arrayData = Object.values(data);
+
+        var xxxData = [];
+        // 取得した配列データの処理
+        arrayData.forEach((item) => {
+          //console.log(item.user_id);
+          //console.log(item.ranking);
+          //console.log(item.gender)
+
+          const user = {
+            user_id: item.user_id,
+            ranking: item.ranking.match(/"(.*?)"/g).map((rank) => rank.slice(1, -1)),
+            gender: item.gender
+          };
+
+          xxxData.push(user);
+
+        });
+
+        console.log(xxxData)
+
+        const maleUsers2 = xxxData.filter((user) => user.gender === "男性");
+        const femaleUsers2 = xxxData.filter((user) => user.gender === "女性");
+
+        console.log(maleUsers2)
+        console.log(femaleUsers2)
+
+        /*var maleUsers = [
+          {
+            gender: "男性",
+            ranking: ["femaleUserId1", "femaleUserId2"],
+            user_id: "maleUserId1"
+          },
+          // 必要に応じて他の男性ユーザーを追加してください
+        ];
+
+var femaleUsers = {
+  femaleUserId1: {
+    gender: "女性",
+    ranking: ["maleUserId1", "maleUserId2"],
+    user_id: "femaleUserId1"
+  },
+  femaleUserId2: {
+    gender: "女性",
+    ranking: ["maleUserId1", "maleUserId3"],
+    user_id: "femaleUserId2"
+  },
+  // 必要に応じて他の女性ユーザーを追加してください
+};*/
+
+        //console.log(maleUsers2)
+        //console.log(femaleUsers2)
+
+        console.log("aaaaaaaa")
+        //console.log(this.gsAlgorithm2(maleUsers2,femaleUsers2))
+        this.matching_result=this.gsAlgorithm2(maleUsers2,femaleUsers2)
+        console.log("aaaaaaaa")
+
+        console.log(xxxData)
+      }, (error) => {
+        console.error(error);
+      });
+
+
+  },
+  beforeDestroy() {
+    firebase
+      .database()
+      .ref("users")
+      .off();
+
+    firebase
+      .database()
+      .ref("messages")
+      .child(this.channel_id)
+      .off();
+  }
+};
+
+</script>
