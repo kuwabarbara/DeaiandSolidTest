@@ -89,7 +89,8 @@ export default {
             //SaveData :null,
             inputText: '',
             PodUrl: '',
-            selectedDate: new Date() // 選択された日付を保持するためのデータ
+            selectedDate: new Date(), // 選択された日付を保持するためのデータ
+            formattedSelectedDate: '',
         
 
         };
@@ -109,6 +110,7 @@ export default {
             const day = ('0' + date.getDate()).slice(-2); // 日も二桁にする
             const formattedDate = `${year}-${month}-${day}`;
             console.log('選択された日付:', formattedDate);
+            this.formattedSelectedDate = formattedDate;
         }
     },
     created() {
@@ -172,7 +174,9 @@ export default {
                 console.log(`Logged in as ${getDefaultSession().info.webId}`);
                 const pods=await getPodUrlAll(getDefaultSession().info.webId,{ fetch: fetch });
                 console.log(pods);
-                this.PodUrl=pods[0]+"kuwaDeaitxt/";
+                this.PodUrl=pods[0]+"KuwaSchedule/"+this.formattedSelectedDate+"/";
+
+                console.log(this.PodUrl);
             }
             else{
                 console.log(`not login`);
@@ -354,6 +358,7 @@ export default {
             await handleIncomingRedirect();
         },
         async readTodoList() {
+            console.log(this.PodUrl);
 
             // Make authenticated requests by passing `fetch` to the solid-client functions.
             // The user must have logged in as someone with the appropriate access to the specified URL.
