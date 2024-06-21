@@ -6,12 +6,19 @@
     <button @click="checkLogin">Check Login</button>
     <br>
 
+
+
+
+
     <input type="text" v-model="inputText">
     <button @click="handleButtonClick">Submit</button>
   
     <br>
 
     <button @click="readTodoList">Read Todo List</button>
+
+    <!-- 日付ピッカーの追加 -->
+    <datepicker v-model="selectedDate"></datepicker>
 
     <br>
     読み込んだデータはこちらです
@@ -48,6 +55,8 @@ import { fetch } from '@inrupt/solid-client-authn-browser'
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import 'firebase/compat/database';
+import Datepicker from 'vuejs-datepicker';
+
 
   // Import from "@inrupt/solid-client"
   import {
@@ -80,11 +89,19 @@ export default {
             //SaveData :null,
             inputText: '',
             PodUrl: '',
+            selectedDate: new Date() // 選択された日付を保持するためのデータ
+        
 
         };
     },
     components: {
+        Datepicker
 
+    },
+    watch: {
+        selectedDate(newVal) {
+            console.log('選択された日付:', newVal);
+        }
     },
     created() {
         this.completeLogin();
