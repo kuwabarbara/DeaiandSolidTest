@@ -14,7 +14,7 @@
     <button @click="readTodoList">Read Todo List</button>
 
     <br>
-    読み込んだデータはこちら
+    読み込んだデータはこちらです
     <br>
     {{ReadData}}
     <br>
