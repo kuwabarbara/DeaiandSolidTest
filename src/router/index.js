@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import Register from '../views/Register.vue'
 import SignIn from '../views/SignIn.vue'
 import UserDetail from '../views/UserDetail.vue'
+import BaraChat from '../views/BaraChat.vue'
 import Kuwa from '../views/Kuwa.vue'
 import Bara from '../views/Bara.vue'
 import firebase from "firebase/compat/app";
@@ -58,6 +59,11 @@ const routes = [
     name: 'Bara',
     component: Bara
   },
+  {
+    path: '/barachat',
+    name: 'BaraChat',
+    component: BaraChat
+  }
 ]
 
 const router = new VueRouter({
