@@ -101,6 +101,14 @@ export default {
     watch: {
         selectedDate(newVal) {
             console.log('選択された日付:', newVal);
+
+
+            const date = new Date(newVal); // newValがDateオブジェクトでない場合の変換
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2); // 月は0から始まるため+1し、二桁にする
+            const day = ('0' + date.getDate()).slice(-2); // 日も二桁にする
+            const formattedDate = `${year}-${month}-${day}`;
+            console.log('選択された日付:', formattedDate);
         }
     },
     created() {
