@@ -248,10 +248,32 @@ export default {
 
 
         async updateToDoList(myChangedDataset) {
+            const myDataset = await getSolidDataset(
+            this.PodUrl,
+            { fetch: fetch }
+            );
+
+            let items = getThingAll(myDataset);
+  
+            let listcontent = "";
+            for (let i = 0; i < items.length; i++) {
+                let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
+                if (item !== null) {
+                listcontent += item + "\n";
+                }
+            }
+
+            myChangedDataset+=listcontent+"\n";
+
+
         // For simplicity and brevity, this tutorial hardcodes the  SolidDataset URL.
             // In practice, you should add in your profile a link to this resource
             // such that applications can follow to find your list.
             const readingListUrl = this.PodUrl;
+
+            console.log("aaaaaaaaa");
+
+
 
             console.log(readingListUrl);
 
@@ -266,9 +288,14 @@ export default {
             myReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
             // Clear the list to override the whole list
             let items = getThingAll(myReadingList);
+
+
             items.forEach((item) => {
                 myReadingList = removeThing(myReadingList, item);
             });
+
+
+
             } catch (error) {
             if (typeof error.statusCode === "number" && error.statusCode === 404) {
                 // if not found, create a new SolidDataset (i.e., the reading list)
