@@ -7,6 +7,9 @@
     <br>
 
     <input type="text" v-model="NameOfThePerson" placeholder="相手の名前を入力">
+    <br>
+    <input type="text" v-model="MyName" placeholder="自分の名前を入力">
+
 
 
 
@@ -27,14 +30,8 @@
     <br>
     <button @click="accessCheck">access check</button>
     <br>
-    <button @click="accessButton">access button</button>
-    <br>
-    <button @click="accessDeprivationButton">access deprivation button</button>
-    <br>
-    <button @click="publicAccessButton">public access button</button>
-    <br>
-    <button @click="publicAccessDeprivationButton">public access deprivation button</button>
-    <br>
+    <button @click="getOtherUserData">get Other User Data</button>
+
 
 
     </div>
@@ -81,6 +78,7 @@ export default {
             PodUrl: '',
 
             NameOfThePerson: '',  // 相手の名前
+            MyName: '',  // 自分の名前
         
 
         };
@@ -124,6 +122,11 @@ export default {
         },
         async handleButtonClick() {
             this.updateToDoList(this.inputText);
+
+            console.log(this.PodUrl+"のファイルを共有する");
+
+            // アクセス権を与える
+            this.accessKuwa(this.PodUrl);
         },
         // アクセス権の確認 データにアクセスできるかどうか
         async accessCheck() {
@@ -157,41 +160,16 @@ export default {
 
 
 
-        //アクセス権を与えるボタン
-        async accessButton() {
-            //this.setupPolicyToMatchAgentsAndClients(this.PodUrl);
-            this.accessKuwa(this.PodUrl);
-            console.log(this.PodUrl);
-        },
-
-        async accessDeprivationButton() {
-            //this.setupPolicyToMatchAgentsAndClients(this.PodUrl);
-            this.accessDeprivationKuwa(this.PodUrl);
-            console.log(this.PodUrl);
-        },
-
-        //パブリックアクセス権を与えるボタン
-        async publicAccessButton() {
-            this.publicAccess(this.PodUrl);
-            console.log(this.PodUrl);
-        },
-
-        //パブリックアクセス権をはく奪するボタン
-        async publicAccessDeprivationButton() {
-            this.publicAccessDeprivation(this.PodUrl);
-            console.log(this.PodUrl);
-        },
-
 
         //アクセス権を与える関数
         async accessKuwa(resourceURL){
             universalAccess.setAgentAccess(
             resourceURL,         // Resource
-            "https://id.inrupt.com/kuwabarbara2",     // Agent
+            "https://id.inrupt.com/"+this.NameOfThePerson,     // Agent
             { read: true, write: false, },          // Access object
             { fetch: fetch }                         // fetch function from authenticated session
             ).then((newAccess) => {
-            this.logAccessInfo("https://id.inrupt.com/kuwabarbara2", newAccess, resourceURL)
+            this.logAccessInfo("https://id.inrupt.com/"+this.NameOfThePerson, newAccess, resourceURL)
             });
         },
         logAccessInfo(agent, agentAccess, resource) {
@@ -203,55 +181,43 @@ export default {
             }
         },
 
-        //アクセス権をはく奪する関数
-        async accessDeprivationKuwa(resourceURL){
-            universalAccess.setAgentAccess(
-            resourceURL,         // Resource
-            "https://id.inrupt.com/kuwabarbara2",     // Agent
-            { read: false, write: false, },          // Access object
-            { fetch: fetch }                         // fetch function from authenticated session
-            ).then((newAccess) => {
-                console.log(`アクセス権をはく奪しました ${JSON.stringify(newAccess)}`);
-            });
-        },
 
-        //パブリックアクセス権を与える関数
-        async publicAccess(resourceURL){
-            universalAccess.setPublicAccess(
-                resourceURL,  // Resource
-                { read: true, write: false },    // Access object
-                { fetch: fetch }                 // fetch function from authenticated session
-                ).then((newAccess) => {
-                if (newAccess === null) {
-                    console.log("Could not load access details for this Resource.");
-                } else {
-                    console.log("Returned Public Access:: ", JSON.stringify(newAccess));
-                }
-                });
-        },
 
-        //パブリックアクセス権をはく奪する関数
-        async publicAccessDeprivation(resourceURL){
-            universalAccess.setPublicAccess(
-                resourceURL,  // Resource
-                { read: false, write: false },    // Access object
-                { fetch: fetch }                 // fetch function from authenticated session
-                ).then((newAccess) => {
-                if (newAccess === null) {
-                    console.log("Could not load access details for this Resource.");
-                } else {
-                    console.log("Returned Public Access:: ", JSON.stringify(newAccess));
-                }
-                });
-        },
+
 
 
 
         async  completeLogin() {
             await handleIncomingRedirect();
         },
+
+        //自分のPodデータを読み込む
         async readTodoList() {
             console.log(this.PodUrl);
+
+          const myDataset = await getSolidDataset(
+            this.PodUrl,
+            { fetch: fetch }
+            );
+
+            let items = getThingAll(myDataset);
+  
+            let listcontent = "";
+            for (let i = 0; i < items.length; i++) {
+                let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
+                if (item !== null) {
+                listcontent += item + "\n";
+                }
+            }
+
+            console.log(listcontent);
+
+        },
+        //相手のPodデータを読み込む
+        async getOtherUserData(){
+            const pods=await getPodUrlAll("https://id.inrupt.com/"+this.NameOfThePerson,{ fetch: fetch });
+
+            var xxx=pods[0]+"KuwaChat/"+this.MyName+"/";
 
             // Make authenticated requests by passing `fetch` to the solid-client functions.
             // The user must have logged in as someone with the appropriate access to the specified URL.
@@ -259,7 +225,7 @@ export default {
             // For example, the user must be someone with Read access to the specified URL.
             const myDataset = await getSolidDataset(
             //"https://storage.inrupt.com/somepod/todolist",
-            this.PodUrl,
+            xxx,
             { fetch: fetch }
             );
             //console.log(myDataset);
@@ -275,9 +241,12 @@ export default {
             }
 
             console.log(listcontent);
-
-            //this.ReadData = myDataset;
         },
+
+
+
+
+
         async updateToDoList(myChangedDataset) {
         // For simplicity and brevity, this tutorial hardcodes the  SolidDataset URL.
             // In practice, you should add in your profile a link to this resource
