@@ -84,30 +84,39 @@ export default {
         };
     },
     created() {
-        this.completeLogin();
+        console.log("created");
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                console.log('User is signed in');
 
 
+                // 現在認証されているユーザーのUIDを取得する
+                const uid = firebase.auth().currentUser.uid;
 
-        // 現在認証されているユーザーのUIDを取得する
-        const uid = firebase.auth().currentUser.uid;
+                console.log("uidを読み取る");
 
-        // Realtime Databaseの参照を作成する
-        const dbRef = firebase.database().ref(`users/${uid}`);
+                console.log(uid);
 
-        // データを取得する
-        dbRef.once('value').then((snapshot) => {
-            const userData = snapshot.val(); // データをオブジェクト形式で取得する
-            const gender = userData.gender; // genderを取得する
-            const name = userData.name; // nameを取得する
-            const status = userData.status; // statusを取得する
+                this.completeLogin();
 
-            console.log(gender);
-            console.log(name);
-            console.log(status);
-        });
+                // Realtime Databaseの参照を作成する
+                const dbRef = firebase.database().ref(`users/${uid}`);
 
+                // データを取得する
+                dbRef.once('value').then((snapshot) => {
+                    const userData = snapshot.val(); // データをオブジェクト形式で取得する
+                    const gender = userData.gender; // genderを取得する
+                    const name = userData.name; // nameを取得する
+                    const status = userData.status; // statusを取得する
 
-        
+                    console.log(gender);
+                    console.log(name);
+                    console.log(status);
+                });
+            } else {
+                console.log('No user is signed in');
+            }
+        });    
     },
     methods: {
         async startLogin() {
