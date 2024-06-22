@@ -32,6 +32,17 @@
     <br>
     <button @click="getOtherUserData">get Other User Data</button>
 
+    <div>
+    Podの情報を入力してね 自分のPodの名前とメンバーの名前を入力してね
+    <input v-model="myPodName" placeholder="自分のユーザー名">
+    <input v-model="podMembers" placeholder="メンバー(カンマ区切り)">
+    <button @click="savePodInfo">保存</button>
+    </div>
+
+    <button @click="fetchPodInfo">Pod情報を取得ボタン</button>
+
+
+
 
 
     </div>
@@ -79,6 +90,9 @@ export default {
 
             NameOfThePerson: '',  // 相手の名前
             MyName: '',  // 自分の名前
+
+            myPodName: '', // Podの名前を格納するためのデータプロパティ
+            podMembers: '', // Podのメンバーを格納するためのデータプロパティ（文字列）
         
 
         };
@@ -129,6 +143,64 @@ export default {
                 });
             }
         },
+
+        //Podのユーザー名を格納する
+        savePodInfo() {
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    console.log('User is signed in');
+
+
+                    // 現在認証されているユーザーのUIDを取得する
+                    const uid = firebase.auth().currentUser.uid;
+
+
+                    // users/{uid}の下にmyPodNameとPodMembersを保存する
+                    const userRef = firebase.database().ref(`users/${uid}`);
+                    userRef.update({
+                        myPodName: this.myPodName,
+                        PodMembers: this.podMembers.split(',')
+                    }).then(() => {
+                        console.log("Pod情報を保存しました");
+                    }).catch((error) => {
+                        console.error("Pod情報の保存に失敗しました:", error);
+                    });
+                } else {
+                    console.log('No user is signed in');
+                }
+            });
+        },
+
+        //Podのユーザー名を取得する
+        fetchPodInfo() {
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    console.log('User is signed in');
+
+                    // 現在認証されているユーザーのUIDを取得する
+                    const uid = firebase.auth().currentUser.uid;
+
+                    // users/{uid}からmyPodNameとPodMembersを取得する
+                    const userRef = firebase.database().ref(`users/${uid}`);
+                    userRef.once('value').then(snapshot => {
+                        const data = snapshot.val();
+                        if (data) {
+                            console.log("Pod情報を取得しました:");
+                            console.log("自分のPod名:", data.myPodName);
+                            console.log("Podメンバー:", data.PodMembers);
+                        } else {
+                            console.log("Pod情報が見つかりません");
+                        }
+                    }).catch(error => {
+                        console.error("Pod情報の取得に失敗しました:", error);
+                    });
+                } else {
+                    console.log('No user is signed in');
+                }
+            });
+        },
+
+
         async handleButtonClick() {
             this.updateToDoList(this.inputText);
 
