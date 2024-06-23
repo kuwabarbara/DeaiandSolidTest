@@ -41,6 +41,11 @@
 
     <button @click="fetchPodInfo">Pod情報を取得ボタン</button>
 
+    <br>
+    <br>
+
+    <button @click="readChat">readChat</button>
+
 
 
 
@@ -93,6 +98,11 @@ export default {
 
             myPodName: '', // Podの名前を格納するためのデータプロパティ
             podMembers: '', // Podのメンバーを格納するためのデータプロパティ（文字列）
+
+            listcontent: '', // チャットの内容を一時的に格納するためのデータプロパティ
+            chatData: [], // チャットの内容を格納するためのデータプロパティ
+
+
         
 
         };
@@ -272,6 +282,75 @@ export default {
             await handleIncomingRedirect();
         },
 
+
+
+        //自分のPodデータのチャットを読み込む
+        async readChat(){
+            //まずPodのユーザー名を取得する
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    console.log('User is signed in');
+
+                    // 現在認証されているユーザーのUIDを取得する
+                    const uid = firebase.auth().currentUser.uid;
+
+                    // users/{uid}からmyPodNameとPodMembersを取得する
+                    const userRef = firebase.database().ref(`users/${uid}`);
+                    userRef.once('value').then(async snapshot => {
+                        const data = snapshot.val();
+                        if (data) {
+                            console.log("Pod情報を取得しました:");
+                            console.log("自分のPod名:", data.myPodName);
+                            console.log("Podメンバー:", data.PodMembers);
+
+                            this.chatData=[];
+
+                            for (let i = 0; i < data.PodMembers.length; i++) {
+                                console.log(data.PodMembers[i]);
+                                await this.getUserData(data.myPodName,data.PodMembers[i]);
+
+                                console.log("aaaaa");
+                                console.log(this.listcontent);
+                                console.log("bbbbb");
+                                //chatDataに読み込んだデータを格納する
+                                this.chatData.push(data.PodMembers[i]+"に対しての送信履歴:"+this.listcontent);
+                            }
+                            for (let i = 0; i < data.PodMembers.length; i++) {
+                                console.log(data.PodMembers[i]);
+                                await this.getUserData(data.PodMembers[i],data.myPodName);
+
+                                console.log("aaaaa");
+                                console.log(this.listcontent);
+                                console.log("bbbbb");
+                                //chatDataに読み込んだデータを格納する
+                                this.chatData.push(data.PodMembers[i]+"に対しての受信履歴:"+this.listcontent);
+                            }
+
+
+
+
+                            console.log("chatDataです");
+                            console.log(this.chatData);
+
+
+                        } else {
+                            console.log("Pod情報が見つかりません");
+                        }
+                    }).catch(error => {
+                        console.error("Pod情報の取得に失敗しました:", error);
+                    });
+                } else {
+                    console.log('No user is signed in');
+                }
+            });
+
+
+
+
+
+
+        },
+
         //自分のPodデータを読み込む
         async readTodoList() {
             console.log(this.PodUrl);
@@ -294,11 +373,11 @@ export default {
             console.log(listcontent);
 
         },
-        //相手のPodデータを読み込む
-        async getOtherUserData(){
-            const pods=await getPodUrlAll("https://id.inrupt.com/"+this.NameOfThePerson,{ fetch: fetch });
+        //指定した相手のPodデータを読み込む
+        async getUserData(NameOfThePerson,MyName){
+            const pods=await getPodUrlAll("https://id.inrupt.com/"+NameOfThePerson,{ fetch: fetch });
 
-            var xxx=pods[0]+"KuwaChat/"+this.MyName+"/";
+            var xxx=pods[0]+"KuwaChat/"+MyName+"/";
 
             // Make authenticated requests by passing `fetch` to the solid-client functions.
             // The user must have logged in as someone with the appropriate access to the specified URL.
@@ -321,7 +400,27 @@ export default {
                 }
             }
 
+            console.log("akasatana");
             console.log(listcontent);
+            console.log("hamayarawa");
+
+            
+            this.listcontent=listcontent;
+
+            console.log("abcde");
+            console.log(this.listcontent);
+            console.log("fghij");
+
+        },
+
+        
+
+
+
+
+        //相手のPodデータを読み込む
+        async getOtherUserData(){
+            this.getUserData(this.NameOfThePerson,this.MyName);
         },
 
 
