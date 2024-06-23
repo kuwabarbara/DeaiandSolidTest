@@ -46,6 +46,12 @@
 
     <button @click="readChat">readChat</button>
 
+    <br>
+    <br>
+
+    <br>
+    <button @click="mbtiDiagnosis">MBTI診断</button>
+
 
 
 
@@ -85,6 +91,9 @@ import 'firebase/compat/database';
 
   import { handleIncomingRedirect, login} from '@inrupt/solid-client-authn-browser';
 
+  import axios from 'axios';
+
+
 export default {
     name: 'BaraChat',
 
@@ -103,6 +112,7 @@ export default {
             chatData: [], // チャットの内容を格納するためのデータプロパティ
 
 
+            apiKey: "",
         
 
         };
@@ -143,6 +153,43 @@ export default {
         });    
     },
     methods: {
+
+
+    //MBTI診断を行う
+    async mbtiDiagnosis() {
+        console.log('ボタンがクリックされました');
+
+        console.log('ChatGPT APIを呼び出します...');
+
+        //.envのAPIキーを取得する
+        this.apiKey = process.env.VUE_APP_OPENAI_API_KEY;
+        try {
+            const prompt = `以下のチャットデータに基づいて、ユーザーのMBTI性格タイプを診断してください。チャットデータは次の通りです：[${this.chatData.join(", ")}]。診断結果だけをアルファベット4文字で返してください。余計なものは何も含めないでお願いします。`;
+
+            const result = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-3.5-turbo',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.7,
+            },
+            {
+                headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.apiKey}`,
+                },
+            }
+            );
+            var response = result.data.choices[0].message.content;
+
+            console.log('ChatGPT APIからの応答:', response);
+        } catch (error) {
+            console.error('ChatGPT API呼び出しエラー:', error);
+        }
+
+    },
+
+
         async startLogin() {
             // Start the Login Process if not already logged in.
             if (!getDefaultSession().info.isLoggedIn) {
@@ -511,11 +558,14 @@ export default {
             console.log(error);
             }
 
-        }
+        },
+ 
 
 
 
     },
+
+
 }
 </script>
   

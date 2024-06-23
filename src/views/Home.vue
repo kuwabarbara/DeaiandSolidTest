@@ -1439,6 +1439,7 @@ export default {
 
       var apiKey=process.env.openAI
 
+
       // GPT-3による返信の生成
       fetch("https://api.openai.com/v1/engines/davinci/completions", {
         method: "POST",
