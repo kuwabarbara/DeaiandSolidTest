@@ -17,8 +17,17 @@
 
     <button @click="readTodoList">Read Todo List</button>
 
-    <!-- 日付ピッカーの追加 -->
-    <datepicker v-model="selectedDate"></datepicker>
+    <form @submit.prevent="handleSubmit">
+      <div>
+        <label for="start">Start Date:</label>
+        <input type="datetime-local" id="start" v-model="newStartDate">
+      </div>
+      <div>
+        <label for="end">End Date:</label>
+        <input type="datetime-local" id="end" v-model="newEndDate">
+      </div>
+      <button type="submit">Add Schedule</button>
+    </form>
 
     <br>
     読み込んだデータはこちらです
@@ -55,7 +64,6 @@ import { fetch } from '@inrupt/solid-client-authn-browser'
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import 'firebase/compat/database';
-import Datepicker from 'vuejs-datepicker';
 
 
   // Import from "@inrupt/solid-client"
@@ -71,6 +79,8 @@ import Datepicker from 'vuejs-datepicker';
     removeThing,
     saveSolidDatasetAt,
     setThing,
+    addDatetime,
+    getDatetime,
   } from "@inrupt/solid-client";
 
   import { universalAccess } from "@inrupt/solid-client";
@@ -89,29 +99,16 @@ export default {
             //SaveData :null,
             inputText: '',
             PodUrl: '',
-            selectedDate: new Date(), // 選択された日付を保持するためのデータ
+            selectedDate: [], // 選択された日付を保持するためのデータ
             formattedSelectedDate: '',
+            newStartDate: "",
+            newEndDate: "",
         
 
         };
     },
     components: {
-        Datepicker
 
-    },
-    watch: {
-        selectedDate(newVal) {
-            console.log('選択された日付:', newVal);
-
-
-            const date = new Date(newVal); // newValがDateオブジェクトでない場合の変換
-            const year = date.getFullYear();
-            const month = ('0' + (date.getMonth() + 1)).slice(-2); // 月は0から始まるため+1し、二桁にする
-            const day = ('0' + date.getDate()).slice(-2); // 日も二桁にする
-            const formattedDate = `${year}-${month}-${day}`;
-            console.log('選択された日付:', formattedDate);
-            this.formattedSelectedDate = formattedDate;
-        }
     },
     created() {
         this.completeLogin();
@@ -140,6 +137,18 @@ export default {
         
     },
     methods: {
+        handleSubmit() {
+            this.addSchedule(this.newStartDate, this.newEndDate);
+            this.newStartDate = "";
+            this.newEndDate = "";
+        },
+        addSchedule(startDate, endDate) {
+            this.selectedData = [];
+            console.log("addSchedule");
+            console.log(startDate, endDate);
+            this.selectedData.push({startDate, endDate });
+            console.log(this.selectedData);
+        },
         async startLogin() {
             // Start the Login Process if not already logged in.
             if (!getDefaultSession().info.isLoggedIn) {
@@ -174,7 +183,7 @@ export default {
                 console.log(`Logged in as ${getDefaultSession().info.webId}`);
                 const pods=await getPodUrlAll(getDefaultSession().info.webId,{ fetch: fetch });
                 console.log(pods);
-                this.PodUrl=pods[0]+"KuwaSchedule/"+this.formattedSelectedDate+"/";
+                this.PodUrl=pods[0]+"KuwaSchedule/";
 
                 console.log(this.PodUrl);
             }
@@ -358,104 +367,67 @@ export default {
             await handleIncomingRedirect();
         },
         async readTodoList() {
+            console.log("readTodoList");
             console.log(this.PodUrl);
 
             // Make authenticated requests by passing `fetch` to the solid-client functions.
-            // The user must have logged in as someone with the appropriate access to the specified URL.
-
-            // For example, the user must be someone with Read access to the specified URL.
-            const myDataset = await getSolidDataset(
-            //"https://storage.inrupt.com/somepod/todolist",
-            this.PodUrl,
-            { fetch: fetch }
-            );
-            //console.log(myDataset);
+            const myDataset = await getSolidDataset(this.PodUrl, { fetch: fetch });
 
             let items = getThingAll(myDataset);
-  
-            let listcontent = "";
+
+            let listcontent = [];
+
             for (let i = 0; i < items.length; i++) {
-                let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
-                if (item !== null) {
-                listcontent += item + "\n";
+                console.log("Processing item", i);
+                let item = items[i];
+                console.log(JSON.stringify(item, null, 2)); // データ構造を完全にログ出力
+
+                let title = getStringNoLocale(item, SCHEMA_INRUPT.name);
+                console.log("title", title);
+
+                let startDate = getDatetime(item, SCHEMA_INRUPT.startDate);
+                console.log("startDate", startDate);
+
+                let endDate = getDatetime(item, SCHEMA_INRUPT.endDate);
+                console.log("endDate", endDate);
+
+                //let location = getStringNoLocale(item, SCHEMA_INRUPT.location) || "";
+                //console.log("location", location);
+
+                //let description = getStringNoLocale(item, SCHEMA_INRUPT.description) || "";
+                //console.log("description", description);
+
+                if (title !== null) {
+                    console.log("Adding item to list");
+                    listcontent.push({
+                        title: title,
+                        startDate: startDate,
+                        endDate: endDate,
+                        //location: location,
+                        //description: description
+                    });
+                }
+                else {
+                    console.log("No title found for item", i);
                 }
             }
 
             console.log(listcontent);
 
-            //this.ReadData = myDataset;
+            // You can use this list content as you wish, e.g., setting it to a data property:
+            this.ReadData = listcontent;
         },
+
+
         async updateToDoList(myChangedDataset) {
-        // For simplicity and brevity, this tutorial hardcodes the  SolidDataset URL.
-            // In practice, you should add in your profile a link to this resource
-            // such that applications can follow to find your list.
+            console.log("updateToDoList");
+            console.log(this.selectedDate);
+            
             const readingListUrl = this.PodUrl;
 
             console.log(readingListUrl);
 
-        
             let titles = myChangedDataset.split("\n");
-        
-            // Fetch or create a new reading list.
-            let myReadingList;
-        
-            try {
-            // Attempt to retrieve the reading list in case it already exists.
-            myReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
-            // Clear the list to override the whole list
-            let items = getThingAll(myReadingList);
-            items.forEach((item) => {
-                myReadingList = removeThing(myReadingList, item);
-            });
-            } catch (error) {
-            if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                // if not found, create a new SolidDataset (i.e., the reading list)
-                myReadingList = createSolidDataset();
-            } else {
-                console.error(error.message);
-            }
-            }
-        
-            // Add titles to the Dataset
-            let i = 0;
-            titles.forEach((title) => {
-            if (title.trim() !== "") {
-                let item = createThing({ name: "title" + i });
-                item = addUrl(item, RDF.type, AS.Article);
-                item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
-                myReadingList = setThing(myReadingList, item);
-                i++;
-            }
-            });
-        
-            try {
-            // Save the SolidDataset
-            let savedReadingList = await saveSolidDatasetAt(
-                readingListUrl,
-                myReadingList,
-                { fetch: fetch }
-            );
-        
-            console.log(savedReadingList);
-    
-            } catch (error) {
-            console.log(error);
-            }
-
-
-
-
-
-
-            /*console.log(myChangedDataset);
-            console.log(this.PodUrl);
-
-
-
-
-            const readingListUrl = this.PodUrl;
-  
-            let titles = myChangedDataset.value.split("\n");
 
             // Fetch or create a new reading list.
             let myReadingList;
@@ -466,53 +438,59 @@ export default {
                 // Clear the list to override the whole list
                 let items = getThingAll(myReadingList);
                 items.forEach((item) => {
-                myReadingList = removeThing(myReadingList, item);
+                    myReadingList = removeThing(myReadingList, item);
                 });
             } catch (error) {
                 if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                // if not found, create a new SolidDataset (i.e., the reading list)
-                myReadingList = createSolidDataset();
+                    // if not found, create a new SolidDataset (i.e., the reading list)
+                    myReadingList = createSolidDataset();
                 } else {
-                console.error(error.message);
+                    console.error(error.message);
+                    return;
                 }
             }
 
-            // Add titles to the Dataset
+            // Add titles and dates to the Dataset
             let i = 0;
             titles.forEach((title) => {
                 if (title.trim() !== "") {
-                let item = createThing({ name: "title" + i });
-                item = addUrl(item, RDF.type, AS.Article);
-                item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
-                myReadingList = setThing(myReadingList, item);
-                i++;
+                    let item = createThing({ name: "schedule" + i });
+                    item = addUrl(item, RDF.type, AS.Article);
+                    item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
+
+                    // Adding the date from this.selectedData if it exists
+                    if (this.selectedData && this.selectedData[i]) {
+                        let startDate = new Date(this.selectedData[i].startDate);
+                        let endDate = new Date(this.selectedData[i].endDate);
+
+                        item = addDatetime(item, SCHEMA_INRUPT.startDate, startDate);
+                        item = addDatetime(item, SCHEMA_INRUPT.endDate, endDate);
+                    } else {
+                        console.warn(`No date provided for item ${i}`);
+                    }
+
+                    myReadingList = setThing(myReadingList, item);
+                    i++;
                 }
             });
 
+            try {
+                // Save the SolidDataset
+                let savedReadingList = await saveSolidDatasetAt(
+                    readingListUrl,
+                    myReadingList,
+                    { fetch: fetch }
+                );
 
+                console.log(savedReadingList);
 
-
-
-
-
-            //const URL=this.PodUrl+ "todolist";
-
-            // The user must be someone with Write access to the specified URL.
-            const savedSolidDataset = await saveSolidDatasetAt(
-            //"https://storage.inrupt.com/somepod/todolist",
-            this.PodUrl,
-            //myChangedDataset,
-            myReadingList,
-            { fetch: fetch }
-            );
-            console.log(savedSolidDataset);
-
-            //this.SaveData = savedSolidDataset;*/
+            } catch (error) {
+                console.log(error);
+            }
         }
 
-
-
-    },
+        
+    }
 }
 </script>
   
