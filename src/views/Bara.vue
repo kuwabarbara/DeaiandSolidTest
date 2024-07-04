@@ -76,7 +76,7 @@ import 'firebase/compat/database';
     getSolidDataset,
     getThingAll,
     getStringNoLocale,
-    removeThing,
+    //removeThing,
     saveSolidDatasetAt,
     setThing,
     addDatetime,
@@ -418,11 +418,71 @@ export default {
             this.ReadData = listcontent;
         },
 
+        //予定の数を数える関数
+        async cntSchedule() {
+            console.log("readTodoList");
+            console.log(this.PodUrl);
+
+            // Make authenticated requests by passing `fetch` to the solid-client functions.
+            const myDataset = await getSolidDataset(this.PodUrl, { fetch: fetch });
+
+            let items = getThingAll(myDataset);
+
+            let listcontent = [];
+
+            for (let i = 0; i < items.length; i++) {
+                console.log("Processing item", i);
+                let item = items[i];
+                console.log(JSON.stringify(item, null, 2)); // データ構造を完全にログ出力
+
+                let title = getStringNoLocale(item, SCHEMA_INRUPT.name);
+                console.log("title", title);
+
+                let startDate = getDatetime(item, SCHEMA_INRUPT.startDate);
+                console.log("startDate", startDate);
+
+                let endDate = getDatetime(item, SCHEMA_INRUPT.endDate);
+                console.log("endDate", endDate);
+
+                //let location = getStringNoLocale(item, SCHEMA_INRUPT.location) || "";
+                //console.log("location", location);
+
+                //let description = getStringNoLocale(item, SCHEMA_INRUPT.description) || "";
+                //console.log("description", description);
+
+                if (title !== null) {
+                    console.log("Adding item to list");
+                    listcontent.push({
+                        title: title,
+                        startDate: startDate,
+                        endDate: endDate,
+                        //location: location,
+                        //description: description
+                    });
+                }
+                else {
+                    console.log("No title found for item", i);
+                }
+            }
+
+            //listcontentの長さを返す
+            return listcontent.length;
+        },
+
 
         async updateToDoList(myChangedDataset) {
+
+
+            let cnt=0;
+
+            cnt=await this.cntSchedule();
+            console.log("元の予定の数");
+            console.log(cnt);
+
+
             console.log("updateToDoList");
             console.log(this.selectedDate);
-            
+
             const readingListUrl = this.PodUrl;
 
             console.log(readingListUrl);
@@ -438,7 +498,9 @@ export default {
                 // Clear the list to override the whole list
                 let items = getThingAll(myReadingList);
                 items.forEach((item) => {
-                    myReadingList = removeThing(myReadingList, item);
+                    //myReadingList = removeThing(myReadingList, item);
+                    console.log("ああああ");
+                    console.log(item);
                 });
             } catch (error) {
                 if (typeof error.statusCode === "number" && error.statusCode === 404) {
@@ -454,7 +516,7 @@ export default {
             let i = 0;
             titles.forEach((title) => {
                 if (title.trim() !== "") {
-                    let item = createThing({ name: "schedule" + i });
+                    let item = createThing({ name: "schedule" + i+cnt });
                     item = addUrl(item, RDF.type, AS.Article);
                     item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
 
