@@ -21,13 +21,13 @@ Vue.config.productionTip = false;
   appId: "1:339647178957:web:68f233f8a5079879c2e184"
 };*/
 const firebaseConfig = {
-  apiKey: "AIzaSyCNOvwEzB9RdIhPvF4rz4XaUWS4hrlzDI8",
-  authDomain: "vuedeai.firebaseapp.com",
-  databaseURL: "https://vuedeai-default-rtdb.firebaseio.com",
-  projectId: "vuedeai",
-  storageBucket: "vuedeai.appspot.com",
-  messagingSenderId: "1005449856509",
-  appId: "1:1005449856509:web:8e79aca4ee90e0b437c594"
+  apiKey: "AIzaSyBC8CTpXym4igYcrGRIGA4nzS0gI5hzQNc",
+  authDomain: "voicematch-4073d.firebaseapp.com",
+  databaseURL: "https://voicematch-4073d-default-rtdb.firebaseio.com",
+  projectId: "voicematch-4073d",
+  storageBucket: "voicematch-4073d.appspot.com",
+  messagingSenderId: "491789197839",
+  appId: "1:491789197839:web:17acda3822fcfbec19397a"
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
