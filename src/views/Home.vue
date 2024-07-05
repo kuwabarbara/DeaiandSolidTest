@@ -133,6 +133,36 @@
               </div>
             </div>
         <hr>
+
+        <div>
+
+      <div>
+        <!-- <input type="text" v-model="receiverId" title="Input the ID from receive.html"> -->
+        <textarea autofocus
+            rows="5" cols="50"
+            class="w-full pt-4 pl-8 outline-none"
+            :placeholder="placeholder"
+            v-model="inputMessage"
+          ></textarea>
+        <v-btn @click="connect">送信</v-btn>
+      </div>
+
+      <div class="text-left">
+        <v-container class="conversation-container">
+          <v-card class="conversation-card">
+            <div class="ml-2">
+              <span v-html="p2pmsg.replace(/\n/g, '<br>')"></span>
+            </div>
+          </v-card>
+        </v-container>
+      </div>
+
+
+      <div id="status">{{ statusMessage }}</div>
+      </div>
+
+
+
         <main class="overflow-y-scroll flex-grow">
           <div class="flex flex-col ml-6 h-full">
             <div class="flex-grow overflow-y-scroll">              
