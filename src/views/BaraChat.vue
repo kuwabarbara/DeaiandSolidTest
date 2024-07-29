@@ -87,7 +87,7 @@ import 'firebase/compat/database';
 
   import { universalAccess } from "@inrupt/solid-client";
   
-  import { SCHEMA_INRUPT, RDF, AS } from "@inrupt/vocab-common-rdf";
+  import { SCHEMA_INRUPT, RDF, AS ,FOAF} from "@inrupt/vocab-common-rdf";
 
   import { handleIncomingRedirect, login} from '@inrupt/solid-client-authn-browser';
 
@@ -415,6 +415,13 @@ export default {
                 if (item !== null) {
                 listcontent += item + "\n";
                 }
+
+                let item2 = getStringNoLocale(items[i], FOAF.givenname);
+                if (item2 !== null) {
+                listcontent += item2 + "\n";
+                }
+
+
             }
 
             console.log(listcontent);
@@ -445,6 +452,12 @@ export default {
                 if (item !== null) {
                 listcontent += item + "\n";
                 }
+
+                let item2 = getStringNoLocale(items[i], FOAF.givenname);
+                if (item2 !== null) {
+                listcontent += item2 + "\n";
+                }
+
             }
 
             console.log("akasatana");
@@ -488,6 +501,12 @@ export default {
                 if (item !== null) {
                 listcontent += item + "\n";
                 }
+
+                let item2 = getStringNoLocale(items[i], FOAF.givenname);
+                if (item2 !== null) {
+                listcontent += item2 + "\n";
+                }
+
             }
 
             myChangedDataset+=listcontent+"\n";
@@ -531,14 +550,26 @@ export default {
                 console.error(error.message);
             }
             }
+
+            console.log("bbbbbbbbbb");
         
             // Add titles to the Dataset
             let i = 0;
             titles.forEach((title) => {
             if (title.trim() !== "") {
-                let item = createThing({ name: "title" + i });
+                console.log("cccccccccc");
+                let item = createThing({ name: "chat" + i });
                 item = addUrl(item, RDF.type, AS.Article);
                 item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
+
+                console.log("this.NameOfThePerson");
+                console.log(this.NameOfThePerson);
+                //受信者の名前を追加
+                item = addStringNoLocale(item, FOAF.givenname, this.NameOfThePerson);
+
+
+
+
                 myReadingList = setThing(myReadingList, item);
                 i++;
             }
