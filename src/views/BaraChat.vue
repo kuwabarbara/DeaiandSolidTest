@@ -80,14 +80,16 @@ import 'firebase/compat/database';
     getSolidDataset,
     getThingAll,
     getStringNoLocale,
-    removeThing,
+    //removeThing,
     saveSolidDatasetAt,
     setThing,
+    addDatetime,
+    getDatetime,
   } from "@inrupt/solid-client";
 
   import { universalAccess } from "@inrupt/solid-client";
   
-  import { SCHEMA_INRUPT, RDF, AS ,FOAF} from "@inrupt/vocab-common-rdf";
+  import { SCHEMA_INRUPT, RDF, AS ,FOAF,DCTERMS} from "@inrupt/vocab-common-rdf";
 
   import { handleIncomingRedirect, login} from '@inrupt/solid-client-authn-browser';
 
@@ -421,6 +423,10 @@ export default {
                 listcontent += item2 + "\n";
                 }
 
+                let item3 = getDatetime(items[i], DCTERMS.created);
+                if (item3 !== null) {
+                listcontent += item3 + "\n";
+                }
 
             }
 
@@ -458,6 +464,11 @@ export default {
                 listcontent += item2 + "\n";
                 }
 
+                let item3 = getDatetime(items[i], DCTERMS.created);
+                if (item3 !== null) {
+                listcontent += item3 + "\n";
+                }
+
             }
 
             console.log("akasatana");
@@ -488,109 +499,51 @@ export default {
 
 
         async updateToDoList(myChangedDataset) {
-            const myDataset = await getSolidDataset(
-            this.PodUrl,
-            { fetch: fetch }
-            );
-
-            let items = getThingAll(myDataset);
-  
-            let listcontent = "";
-            for (let i = 0; i < items.length; i++) {
-                let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
-                if (item !== null) {
-                listcontent += item + "\n";
-                }
-
-                let item2 = getStringNoLocale(items[i], FOAF.givenname);
-                if (item2 !== null) {
-                listcontent += item2 + "\n";
-                }
-
-            }
-
-            myChangedDataset+=listcontent+"\n";
-
-
-        // For simplicity and brevity, this tutorial hardcodes the  SolidDataset URL.
-            // In practice, you should add in your profile a link to this resource
-            // such that applications can follow to find your list.
             const readingListUrl = this.PodUrl;
 
-            console.log("aaaaaaaaa");
-
-
-
-            console.log(readingListUrl);
-
-        
-            let titles = myChangedDataset.split("\n");
-        
             // Fetch or create a new reading list.
             let myReadingList;
-        
+
             try {
-            // Attempt to retrieve the reading list in case it already exists.
-            myReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
-            // Clear the list to override the whole list
-            let items = getThingAll(myReadingList);
-
-
-            items.forEach((item) => {
-                myReadingList = removeThing(myReadingList, item);
-            });
-
-
-
+                // Attempt to retrieve the reading list in case it already exists.
+                myReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
             } catch (error) {
-            if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                // if not found, create a new SolidDataset (i.e., the reading list)
-                myReadingList = createSolidDataset();
-            } else {
-                console.error(error.message);
+                if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                    // if not found, create a new SolidDataset (i.e., the reading list)
+                    myReadingList = createSolidDataset();
+                } else {
+                    console.error(error.message);
+                    return; // ここでエラーが発生した場合は処理を中断します
+                }
             }
-            }
 
-            console.log("bbbbbbbbbb");
-        
-            // Add titles to the Dataset
-            let i = 0;
-            titles.forEach((title) => {
-            if (title.trim() !== "") {
-                console.log("cccccccccc");
-                let item = createThing({ name: "chat" + i });
-                item = addUrl(item, RDF.type, AS.Article);
-                item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
+            // Add new titles to the Dataset
+            let i = getThingAll(myReadingList).length; // 既存のアイテム数を取得
+            let item = createThing({ name: "chat" + i });
+            item = addUrl(item, RDF.type, AS.Article);
+            item = addStringNoLocale(item, SCHEMA_INRUPT.name, myChangedDataset);
 
-                console.log("this.NameOfThePerson");
-                console.log(this.NameOfThePerson);
-                //受信者の名前を追加
-                item = addStringNoLocale(item, FOAF.givenname, this.NameOfThePerson);
+            // 受信者の名前を追加
+            item = addStringNoLocale(item, FOAF.givenname, this.NameOfThePerson);
 
+            const timestamp = new Date();
+            item = addDatetime(item, DCTERMS.created, timestamp);
 
+            myReadingList = setThing(myReadingList, item);
 
-
-                myReadingList = setThing(myReadingList, item);
-                i++;
-            }
-            });
-        
             try {
-            // Save the SolidDataset
-            let savedReadingList = await saveSolidDatasetAt(
-                readingListUrl,
-                myReadingList,
-                { fetch: fetch }
-            );
-        
-            console.log(savedReadingList);
-    
-            } catch (error) {
-            console.log(error);
-            }
+                // Save the SolidDataset
+                let savedReadingList = await saveSolidDatasetAt(
+                    readingListUrl,
+                    myReadingList,
+                    { fetch: fetch }
+                );
 
+                console.log(savedReadingList);
+            } catch (error) {
+                console.log(error);
+            }
         },
- 
 
 
 
