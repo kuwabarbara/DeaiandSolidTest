@@ -20,6 +20,9 @@
   
     <br>
 
+    <input type="text" v-model="chatLanguage" placeholder="チャットの言語を入力">
+    <br>
+
     <button @click="readTodoList">Read Todo List</button>
 
     <br>
@@ -115,6 +118,8 @@ export default {
 
 
             apiKey: "",
+
+            chatLanguage: 'ja', // チャットの言語を格納
         
 
         };
@@ -428,6 +433,12 @@ export default {
                 listcontent += item3 + "\n";
                 }
 
+                // 言語属性を読み取る
+                let item4 = getStringNoLocale(items[i], DCTERMS.language);
+                if (item4 !== null) {
+                listcontent += "言語: " + item4 + "\n";
+                }
+
             }
 
             console.log(listcontent);
@@ -467,6 +478,12 @@ export default {
                 let item3 = getDatetime(items[i], DCTERMS.created);
                 if (item3 !== null) {
                 listcontent += item3 + "\n";
+                }
+
+                // 言語属性を読み取る
+                let item4 = getStringNoLocale(items[i], DCTERMS.language);
+                if (item4 !== null) {
+                listcontent += "言語: " + item4 + "\n";
                 }
 
             }
@@ -522,6 +539,9 @@ export default {
             let item = createThing({ name: "chat" + i });
             item = addUrl(item, RDF.type, AS.Article);
             item = addStringNoLocale(item, SCHEMA_INRUPT.name, myChangedDataset);
+
+            // チャットの言語を追加
+            item = addStringNoLocale(item, DCTERMS.language, this.chatLanguage);
 
             // 受信者の名前を追加
             item = addStringNoLocale(item, FOAF.givenname, this.NameOfThePerson);
