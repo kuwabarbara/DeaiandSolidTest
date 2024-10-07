@@ -68,6 +68,23 @@
 
     <button @click="mbtiDiagnosis2">MBTI診断2</button>
 
+        <!-- チャットデータのフィルタリング -->
+        <div>
+      <h3>チャットデータのフィルタリング</h3>
+      <input type="text" v-model="filterLanguage" placeholder="言語コードを入力（例: ja, en）">
+      <button @click="filterChatDataByLanguage">言語でフィルタリング</button>
+
+      <input type="text" v-model="filterSender" placeholder="送信者の名前を入力">
+      <button @click="filterChatDataBySender">送信者でフィルタリング</button>
+    </div>
+
+    <!-- 予定データのフィルタリング -->
+    <div>
+      <h3>予定データのフィルタリング</h3>
+      <input type="number" v-model="filterDuration" placeholder="最小の予定時間（時間単位）">
+      <button @click="filterScheduleDataByDuration">予定の長さでフィルタリング</button>
+    </div>
+
 
 
 
@@ -136,6 +153,14 @@ export default {
             chatLanguage: 'ja', // チャットの言語を格納
 
             scheduleData: [], // 予定データを格納するためのデータプロパティ
+
+            // フィルタリング条件
+            filterLanguage: '',         // チャットデータの言語フィルタリング条件
+            filterSender: '',           // チャットデータの送信者フィルタリング条件
+            filterDuration: 0,          // 予定データの長さフィルタリング条件（時間単位）
+            // フィルタリング結果を格納する配列
+            filteredChatData: [],       // フィルタリングされたチャットデータ
+            filteredScheduleData: [],   // フィルタリングされた予定データ
         
 
         };
@@ -176,6 +201,53 @@ export default {
         });    
     },
     methods: {
+        // チャットデータを言語でフィルタリングし、結果をコンソールに表示
+        filterChatDataByLanguage() {
+      if (!this.filterLanguage) {
+        console.log('言語フィルタリング条件が指定されていません。');
+        return;
+      }
+
+      this.filteredChatData = this.chatData.filter((item) => {
+        return item.language === this.filterLanguage;
+      });
+
+      console.log('フィルタリングされたチャットデータ（言語）:', this.filteredChatData);
+    },
+
+    // チャットデータを送信者でフィルタリングし、結果をコンソールに表示
+    filterChatDataBySender() {
+      if (!this.filterSender) {
+        console.log('送信者フィルタリング条件が指定されていません。');
+        return;
+      }
+
+      this.filteredChatData = this.chatData.filter((item) => {
+        return item.sender === this.filterSender;
+      });
+
+      console.log('フィルタリングされたチャットデータ（送信者）:', this.filteredChatData);
+    },
+
+    // 予定データを予定の長さでフィルタリングし、結果をコンソールに表示
+    filterScheduleDataByDuration() {
+      if (!this.filterDuration) {
+        console.log('予定の長さのフィルタリング条件が指定されていません。');
+        return;
+      }
+
+      this.filteredScheduleData = this.scheduleData.filter((item) => {
+        if (item.startDate && item.endDate) {
+          const durationHours = (item.endDate - item.startDate) / (1000 * 60 * 60);
+          return durationHours >= this.filterDuration;
+        } else {
+          return false;
+        }
+      });
+
+      console.log('フィルタリングされた予定データ:', this.filteredScheduleData);
+    },
+        
 
             // 予定データを読み込むメソッドを追加
     async readScheduleData() {
@@ -230,6 +302,9 @@ async mbtiDiagnosis2() {
   console.log('ボタンがクリックされました');
 
   console.log('ChatGPT APIを呼び出します...');
+
+  console.log('チャットデータ:', this.chatData);
+    console.log('予定データ:', this.scheduleData);
 
   // .envのAPIキーを取得する
   this.apiKey = process.env.VUE_APP_OPENAI_API_KEY;
@@ -458,18 +533,13 @@ ${this.scheduleData
 
 
 
-        //自分のPodデータのチャットを読み込む
+
         async readChat(){
-            //まずPodのユーザー名を取得する
-            firebase.auth().onAuthStateChanged(user => {
+            firebase.auth().onAuthStateChanged(async user => {
                 if (user) {
-                    console.log('User is signed in');
-
-                    // 現在認証されているユーザーのUIDを取得する
                     const uid = firebase.auth().currentUser.uid;
-
-                    // users/{uid}からmyPodNameとPodMembersを取得する
                     const userRef = firebase.database().ref(`users/${uid}`);
+
                     userRef.once('value').then(async snapshot => {
                         const data = snapshot.val();
                         if (data) {
@@ -477,35 +547,22 @@ ${this.scheduleData
                             console.log("自分のPod名:", data.myPodName);
                             console.log("Podメンバー:", data.PodMembers);
 
-                            this.chatData=[];
+                            // chatDataを初期化
+                            this.chatData = [];
 
+                            // メンバーとの送信・受信履歴を取得
                             for (let i = 0; i < data.PodMembers.length; i++) {
-                                console.log(data.PodMembers[i]);
-                                await this.getUserData(data.myPodName,data.PodMembers[i]);
+                                let member = data.PodMembers[i];
 
-                                console.log("aaaaa");
-                                console.log(this.listcontent);
-                                console.log("bbbbb");
-                                //chatDataに読み込んだデータを格納する
-                                this.chatData.push(data.PodMembers[i]+"に対しての送信履歴:"+this.listcontent);
+                                // 自分から相手へのメッセージを取得
+                                await this.getUserData(data.myPodName, member);
+
+                                // 相手から自分へのメッセージを取得
+                                await this.getUserData(member, data.myPodName);
                             }
-                            for (let i = 0; i < data.PodMembers.length; i++) {
-                                console.log(data.PodMembers[i]);
-                                await this.getUserData(data.PodMembers[i],data.myPodName);
-
-                                console.log("aaaaa");
-                                console.log(this.listcontent);
-                                console.log("bbbbb");
-                                //chatDataに読み込んだデータを格納する
-                                this.chatData.push(data.PodMembers[i]+"に対しての受信履歴:"+this.listcontent);
-                            }
-
-
-
 
                             console.log("chatDataです");
                             console.log(this.chatData);
-
 
                         } else {
                             console.log("Pod情報が見つかりません");
@@ -517,111 +574,88 @@ ${this.scheduleData
                     console.log('No user is signed in');
                 }
             });
-
-
-
-
-
-
         },
 
-        //自分のPodデータを読み込む
         async readTodoList() {
             console.log(this.PodUrl);
 
-          const myDataset = await getSolidDataset(
-            this.PodUrl,
-            { fetch: fetch }
-            );
+            try {
+                const myDataset = await getSolidDataset(this.PodUrl, { fetch: fetch });
+                let items = getThingAll(myDataset);
 
-            let items = getThingAll(myDataset);
-  
-            let listcontent = "";
-            for (let i = 0; i < items.length; i++) {
-                let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
-                if (item !== null) {
-                listcontent += item + "\n";
+                let messageArray = [];
+
+                for (let i = 0; i < items.length; i++) {
+                let thing = items[i];
+
+                let message = getStringNoLocale(thing, SCHEMA_INRUPT.name) || '';
+                let recipient = getStringNoLocale(thing, FOAF.givenname) || '';
+                let timestamp = getDatetime(thing, DCTERMS.created) || null;
+                let language = getStringNoLocale(thing, DCTERMS.language) || '';
+
+                // メッセージオブジェクトを作成
+                let messageObject = {
+                    message: message,
+                    recipient: recipient,
+                    timestamp: timestamp,
+                    language: language,
+                    sender: this.MyName,
+                    receiver: this.NameOfThePerson
+                };
+
+                messageArray.push(messageObject);
                 }
 
-                let item2 = getStringNoLocale(items[i], FOAF.givenname);
-                if (item2 !== null) {
-                listcontent += item2 + "\n";
-                }
+                // 読み込んだデータを chatData に追加
+                this.chatData = this.chatData.concat(messageArray);
 
-                let item3 = getDatetime(items[i], DCTERMS.created);
-                if (item3 !== null) {
-                listcontent += item3 + "\n";
-                }
+                console.log("取得した自分のチャットデータ:");
+                console.log(messageArray);
 
-                // 言語属性を読み取る
-                let item4 = getStringNoLocale(items[i], DCTERMS.language);
-                if (item4 !== null) {
-                listcontent += "言語: " + item4 + "\n";
-                }
-
+            } catch (error) {
+                console.error("データの取得に失敗しました:", error);
             }
+            },
 
-            console.log(listcontent);
+        // 指定した相手のPodデータを読み込む
+        async getUserData(NameOfThePerson, MyName){
+            const pods = await getPodUrlAll("https://id.inrupt.com/" + NameOfThePerson, { fetch: fetch });
+            const dataUrl = pods[0] + "KuwaChat/" + MyName + "/";
 
-        },
-        //指定した相手のPodデータを読み込む
-        async getUserData(NameOfThePerson,MyName){
-            const pods=await getPodUrlAll("https://id.inrupt.com/"+NameOfThePerson,{ fetch: fetch });
+            try {
+                const myDataset = await getSolidDataset(dataUrl, { fetch: fetch });
+                let items = getThingAll(myDataset);
 
-            var xxx=pods[0]+"KuwaChat/"+MyName+"/";
+                let messageArray = [];
 
-            // Make authenticated requests by passing `fetch` to the solid-client functions.
-            // The user must have logged in as someone with the appropriate access to the specified URL.
+                for (let i = 0; i < items.length; i++) {
+                    let thing = items[i];
 
-            // For example, the user must be someone with Read access to the specified URL.
-            const myDataset = await getSolidDataset(
-            //"https://storage.inrupt.com/somepod/todolist",
-            xxx,
-            { fetch: fetch }
-            );
-            //console.log(myDataset);
+                    let message = getStringNoLocale(thing, SCHEMA_INRUPT.name) || '';
+                    let recipient = getStringNoLocale(thing, FOAF.givenname) || '';
+                    let timestamp = getDatetime(thing, DCTERMS.created) || null;
+                    let language = getStringNoLocale(thing, DCTERMS.language) || '';
 
-            let items = getThingAll(myDataset);
-  
-            let listcontent = "";
-            for (let i = 0; i < items.length; i++) {
-                let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
-                if (item !== null) {
-                listcontent += item + "\n";
+                    // メッセージオブジェクトを作成
+                    let messageObject = {
+                        message: message,
+                        recipient: recipient,
+                        timestamp: timestamp,
+                        language: language,
+                        sender: NameOfThePerson,
+                        receiver: MyName
+                    };
+
+                    messageArray.push(messageObject);
                 }
 
-                let item2 = getStringNoLocale(items[i], FOAF.givenname);
-                if (item2 !== null) {
-                listcontent += item2 + "\n";
-                }
+                // 読み込んだデータを chatData に追加
+                this.chatData = this.chatData.concat(messageArray);
 
-                let item3 = getDatetime(items[i], DCTERMS.created);
-                if (item3 !== null) {
-                listcontent += item3 + "\n";
-                }
-
-                // 言語属性を読み取る
-                let item4 = getStringNoLocale(items[i], DCTERMS.language);
-                if (item4 !== null) {
-                listcontent += "言語: " + item4 + "\n";
-                }
-
+            } catch (error) {
+                console.error("データの取得に失敗しました:", error);
             }
-
-            console.log("akasatana");
-            console.log(listcontent);
-            console.log("hamayarawa");
-
-            
-            this.listcontent=listcontent;
-
-            console.log("abcde");
-            console.log(this.listcontent);
-            console.log("fghij");
-
         },
-
-        
 
 
 
