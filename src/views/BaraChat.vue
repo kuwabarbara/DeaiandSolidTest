@@ -66,6 +66,8 @@
     </ul>
     <button @click="readScheduleData">予定データを読み込む</button>
 
+    <button @click="mbtiDiagnosis2">MBTI診断2</button>
+
 
 
 
@@ -222,6 +224,61 @@ export default {
       this.scheduleData = listcontent;
     },
 
+
+    // MBTI診断を行う（chatDataとscheduleDataの両方を使用）
+async mbtiDiagnosis2() {
+  console.log('ボタンがクリックされました');
+
+  console.log('ChatGPT APIを呼び出します...');
+
+  // .envのAPIキーを取得する
+  this.apiKey = process.env.VUE_APP_OPENAI_API_KEY;
+
+  try {
+    // チャットデータと予定データを組み合わせてプロンプトを作成
+    const prompt = `以下のチャットデータと予定データに基づいて、ユーザーのMBTI性格タイプを診断してください。
+
+チャットデータ:
+${this.chatData.join("\n")}
+
+予定データ:
+${this.scheduleData
+  .map(
+    (item) =>
+      `タイトル: ${item.title}, 開始日時: ${item.startDate}, 終了日時: ${item.endDate}`
+  )
+  .join("\n")}
+
+診断結果だけをアルファベット4文字で返してください。余計なものは何も含めないでお願いします。`;
+
+    const result = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+      }
+    );
+
+    const response = result.data.choices[0].message.content.trim();
+
+    console.log('ChatGPT APIからの応答:', response);
+
+    // 診断結果をデータプロパティに保存（必要に応じて）
+    this.mbtiResult = response;
+
+    // ユーザーに結果を表示する場合
+    alert(`診断結果: ${response}`);
+  } catch (error) {
+    console.error('ChatGPT API呼び出しエラー:', error);
+  }
+},
 
     //MBTI診断を行う
     async mbtiDiagnosis() {
