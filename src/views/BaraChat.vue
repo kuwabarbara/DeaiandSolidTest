@@ -56,6 +56,16 @@
     <button @click="mbtiDiagnosis">MBTI診断</button>
 
 
+    <h2>予定一覧</h2>
+    <ul>
+      <li v-for="(item, index) in scheduleData" :key="index">
+        <p>タイトル: {{ item.title }}</p>
+        <p>開始日時: {{ item.startDate }}</p>
+        <p>終了日時: {{ item.endDate }}</p>
+      </li>
+    </ul>
+    <button @click="readScheduleData">予定データを読み込む</button>
+
 
 
 
@@ -104,6 +114,8 @@ export default {
 
     data() {
         return {
+            loginPodUrl: '',  //ログインしているPodのURLを格納するためのデータプロパティ
+
             inputText: '',
             PodUrl: '',
 
@@ -120,6 +132,8 @@ export default {
             apiKey: "",
 
             chatLanguage: 'ja', // チャットの言語を格納
+
+            scheduleData: [], // 予定データを格納するためのデータプロパティ
         
 
         };
@@ -160,6 +174,53 @@ export default {
         });    
     },
     methods: {
+
+            // 予定データを読み込むメソッドを追加
+    async readScheduleData() {
+      console.log("readScheduleData");
+
+      // 予定データのPodのURLを設定
+      const schedulePodUrl = this.loginPodUrl+"KuwaSchedule/";
+
+      console.log("schedulePodUrl", schedulePodUrl);
+
+      // Make authenticated requests by passing `fetch` to the solid-client functions.
+      const myDataset = await getSolidDataset(schedulePodUrl, { fetch: fetch });
+
+      let items = getThingAll(myDataset);
+
+      let listcontent = [];
+
+      for (let i = 0; i < items.length; i++) {
+        console.log("Processing item", i);
+        let item = items[i];
+
+        let title = getStringNoLocale(item, SCHEMA_INRUPT.name);
+        console.log("title", title);
+
+        let startDate = getDatetime(item, SCHEMA_INRUPT.startDate);
+        console.log("startDate", startDate);
+
+        let endDate = getDatetime(item, SCHEMA_INRUPT.endDate);
+        console.log("endDate", endDate);
+
+        if (title !== null) {
+          console.log("Adding item to list");
+          listcontent.push({
+            title: title,
+            startDate: startDate,
+            endDate: endDate,
+          });
+        } else {
+          console.log("No title found for item", i);
+        }
+      }
+
+      console.log(listcontent);
+
+      // 読み込んだデータをデータプロパティに保存
+      this.scheduleData = listcontent;
+    },
 
 
     //MBTI診断を行う
@@ -295,6 +356,8 @@ export default {
                 const pods=await getPodUrlAll(getDefaultSession().info.webId,{ fetch: fetch });
                 console.log(pods);
                 this.PodUrl=pods[0]+"KuwaChat/"+this.NameOfThePerson+"/";
+
+                this.loginPodUrl=pods[0];
 
                 console.log(this.PodUrl);
             }
