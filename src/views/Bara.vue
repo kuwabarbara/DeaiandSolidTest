@@ -366,56 +366,85 @@ export default {
         async  completeLogin() {
             await handleIncomingRedirect();
         },
+
         async readTodoList() {
             console.log("readTodoList");
-            console.log(this.PodUrl);
+            const titlesUrl = this.PodUrl + 'titles';
+            const datesUrl = this.PodUrl + 'dates';
 
-            // Make authenticated requests by passing `fetch` to the solid-client functions.
-            const myDataset = await getSolidDataset(this.PodUrl, { fetch: fetch });
-
-            let items = getThingAll(myDataset);
-
-            let listcontent = [];
-
-            for (let i = 0; i < items.length; i++) {
-                console.log("Processing item", i);
-                let item = items[i];
-                console.log(JSON.stringify(item, null, 2)); // データ構造を完全にログ出力
-
-                let title = getStringNoLocale(item, SCHEMA_INRUPT.name);
-                console.log("title", title);
-
-                let startDate = getDatetime(item, SCHEMA_INRUPT.startDate);
-                console.log("startDate", startDate);
-
-                let endDate = getDatetime(item, SCHEMA_INRUPT.endDate);
-                console.log("endDate", endDate);
-
-                //let location = getStringNoLocale(item, SCHEMA_INRUPT.location) || "";
-                //console.log("location", location);
-
-                //let description = getStringNoLocale(item, SCHEMA_INRUPT.description) || "";
-                //console.log("description", description);
-
-                if (title !== null) {
-                    console.log("Adding item to list");
-                    listcontent.push({
-                        title: title,
-                        startDate: startDate,
-                        endDate: endDate,
-                        //location: location,
-                        //description: description
-                    });
-                }
-                else {
-                    console.log("No title found for item", i);
+            // タイトルのデータセットを取得
+            let titlesDataset;
+            try {
+                titlesDataset = await getSolidDataset(titlesUrl, { fetch: fetch });
+            } catch (error) {
+                if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                    console.error("Titles dataset not found.");
+                    return;
+                } else {
+                    console.error(error.message);
+                    return;
                 }
             }
 
-            console.log(listcontent);
+            // 日時のデータセットを取得
+            let datesDataset;
+            try {
+                datesDataset = await getSolidDataset(datesUrl, { fetch: fetch });
+            } catch (error) {
+                if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                    console.error("Dates dataset not found.");
+                    return;
+                } else {
+                    console.error(error.message);
+                    return;
+                }
+            }
 
-            // You can use this list content as you wish, e.g., setting it to a data property:
-            this.ReadData = listcontent;
+            // 両方のデータセットからThingを取得
+            let titleThings = getThingAll(titlesDataset);
+            let dateThings = getThingAll(datesDataset);
+
+            // イベントIDをキーとしたマップを作成
+            let titlesMap = {};
+            titleThings.forEach((thing) => {
+                let eventId = getStringNoLocale(thing, SCHEMA_INRUPT.identifier);
+                let title = getStringNoLocale(thing, SCHEMA_INRUPT.name);
+                if (eventId && title) {
+                    titlesMap[eventId] = title;
+                }
+            });
+
+            let datesMap = {};
+            dateThings.forEach((thing) => {
+                let eventId = getStringNoLocale(thing, SCHEMA_INRUPT.identifier);
+                let startDate = getDatetime(thing, SCHEMA_INRUPT.startDate);
+                let endDate = getDatetime(thing, SCHEMA_INRUPT.endDate);
+                if (eventId) {
+                    datesMap[eventId] = {
+                        startDate: startDate,
+                        endDate: endDate
+                    };
+                }
+            });
+
+            // イベントIDでデータを結合
+            let listContent = [];
+
+            for (let eventId in titlesMap) {
+                let title = titlesMap[eventId];
+                let dates = datesMap[eventId] || {};
+                listContent.push({
+                    eventId: eventId,
+                    title: title,
+                    startDate: dates.startDate,
+                    endDate: dates.endDate
+                });
+            }
+
+            console.log(listContent);
+
+            // データを表示または使用
+            this.ReadData = listContent;
         },
 
         //予定の数を数える関数
@@ -469,82 +498,105 @@ export default {
             return listcontent.length;
         },
 
-
         async updateToDoList(myChangedDataset) {
+            let cnt = 0;
 
-
-            let cnt=0;
-
-            cnt=await this.cntSchedule();
+            cnt = await this.cntSchedule();
             console.log("元の予定の数");
             console.log(cnt);
-
 
             console.log("updateToDoList");
             console.log(this.selectedDate);
 
-            const readingListUrl = this.PodUrl;
+            // タイトルと日時を別々のファイルに保存するためのURLを定義
+            const titlesUrl = this.PodUrl + 'titles';
+            const datesUrl = this.PodUrl + 'dates';
 
-            console.log(readingListUrl);
+            console.log(titlesUrl);
+            console.log(datesUrl);
 
             let titles = myChangedDataset.split("\n");
 
-            // Fetch or create a new reading list.
-            let myReadingList;
+            // タイトルと日時のデータセットを取得または作成
+            let titlesDataset;
+            let datesDataset;
 
             try {
-                // Attempt to retrieve the reading list in case it already exists.
-                myReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
-                // Clear the list to override the whole list
-                let items = getThingAll(myReadingList);
-                items.forEach((item) => {
-                    //myReadingList = removeThing(myReadingList, item);
-                    console.log("ああああ");
-                    console.log(item);
-                });
+                titlesDataset = await getSolidDataset(titlesUrl, { fetch: fetch });
             } catch (error) {
                 if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                    // if not found, create a new SolidDataset (i.e., the reading list)
-                    myReadingList = createSolidDataset();
+                    titlesDataset = createSolidDataset();
                 } else {
                     console.error(error.message);
                     return;
                 }
             }
 
-            // Add titles and dates to the Dataset
+            try {
+                datesDataset = await getSolidDataset(datesUrl, { fetch: fetch });
+            } catch (error) {
+                if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                    datesDataset = createSolidDataset();
+                } else {
+                    console.error(error.message);
+                    return;
+                }
+            }
+
+            // イベントごとに処理
             let i = 0;
             titles.forEach((title) => {
                 if (title.trim() !== "") {
-                    let item = createThing({ name: "schedule" + i+cnt });
-                    item = addUrl(item, RDF.type, AS.Article);
-                    item = addStringNoLocale(item, SCHEMA_INRUPT.name, title);
+                    let eventId = "schedule" + (i + cnt);
 
-                    // Adding the date from this.selectedData if it exists
+                    // タイトルのThingを作成し、イベントIDを追加
+                    let titleThing = createThing({ name: eventId });
+                    titleThing = addUrl(titleThing, RDF.type, AS.Article);
+                    titleThing = addStringNoLocale(titleThing, SCHEMA_INRUPT.name, title);
+                    titleThing = addStringNoLocale(titleThing, SCHEMA_INRUPT.identifier, eventId);
+
+                    // タイトルのデータセットに追加
+                    titlesDataset = setThing(titlesDataset, titleThing);
+
+                    // 日時のThingを作成し、イベントIDを追加
                     if (this.selectedData && this.selectedData[i]) {
+                        let datesThing = createThing({ name: eventId });
+                        datesThing = addUrl(datesThing, RDF.type, AS.Article);
+                        datesThing = addStringNoLocale(datesThing, SCHEMA_INRUPT.identifier, eventId);
+
                         let startDate = new Date(this.selectedData[i].startDate);
                         let endDate = new Date(this.selectedData[i].endDate);
 
-                        item = addDatetime(item, SCHEMA_INRUPT.startDate, startDate);
-                        item = addDatetime(item, SCHEMA_INRUPT.endDate, endDate);
+                        datesThing = addDatetime(datesThing, SCHEMA_INRUPT.startDate, startDate);
+                        datesThing = addDatetime(datesThing, SCHEMA_INRUPT.endDate, endDate);
+
+                        // 日時のデータセットに追加
+                        datesDataset = setThing(datesDataset, datesThing);
                     } else {
                         console.warn(`No date provided for item ${i}`);
                     }
 
-                    myReadingList = setThing(myReadingList, item);
                     i++;
                 }
             });
 
             try {
-                // Save the SolidDataset
-                let savedReadingList = await saveSolidDatasetAt(
-                    readingListUrl,
-                    myReadingList,
+                // タイトルのデータセットを保存
+                let savedTitlesDataset = await saveSolidDatasetAt(
+                    titlesUrl,
+                    titlesDataset,
                     { fetch: fetch }
                 );
 
-                console.log(savedReadingList);
+                // 日時のデータセットを保存
+                let savedDatesDataset = await saveSolidDatasetAt(
+                    datesUrl,
+                    datesDataset,
+                    { fetch: fetch }
+                );
+
+                console.log('Saved titles dataset:', savedTitlesDataset);
+                console.log('Saved dates dataset:', savedDatesDataset);
 
             } catch (error) {
                 console.log(error);
