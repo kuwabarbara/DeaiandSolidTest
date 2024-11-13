@@ -85,7 +85,7 @@ import 'firebase/compat/database';
 
   import { universalAccess } from "@inrupt/solid-client";
   
-  import { SCHEMA_INRUPT, RDF, AS } from "@inrupt/vocab-common-rdf";
+  import { SCHEMA_INRUPT, RDF} from "@inrupt/vocab-common-rdf";
 
   import { handleIncomingRedirect, login} from '@inrupt/solid-client-authn-browser';
   //import { acp_ess_2, asUrl } from "@inrupt/solid-client";
@@ -366,19 +366,19 @@ export default {
         async  completeLogin() {
             await handleIncomingRedirect();
         },
-
         async readTodoList() {
             console.log("readTodoList");
-            const titlesUrl = this.PodUrl + 'titles';
-            const datesUrl = this.PodUrl + 'dates';
+            const schedulesDirUrl = this.PodUrl + 'schedules/';
+            const titlesDirUrl = schedulesDirUrl + 'titles/';
+            const datesDirUrl = schedulesDirUrl + 'dates/';
 
-            // タイトルのデータセットを取得
+            // titles ディレクトリのコンテンツを取得
             let titlesDataset;
             try {
-                titlesDataset = await getSolidDataset(titlesUrl, { fetch: fetch });
+                titlesDataset = await getSolidDataset(titlesDirUrl, { fetch: fetch });
             } catch (error) {
                 if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                    console.error("Titles dataset not found.");
+                    console.error("Titles directory not found.");
                     return;
                 } else {
                     console.error(error.message);
@@ -386,13 +386,13 @@ export default {
                 }
             }
 
-            // 日時のデータセットを取得
+            // dates ディレクトリのコンテンツを取得
             let datesDataset;
             try {
-                datesDataset = await getSolidDataset(datesUrl, { fetch: fetch });
+                datesDataset = await getSolidDataset(datesDirUrl, { fetch: fetch });
             } catch (error) {
                 if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                    console.error("Dates dataset not found.");
+                    console.error("Dates directory not found.");
                     return;
                 } else {
                     console.error(error.message);
@@ -400,32 +400,46 @@ export default {
                 }
             }
 
-            // 両方のデータセットからThingを取得
-            let titleThings = getThingAll(titlesDataset);
-            let dateThings = getThingAll(datesDataset);
+            // titles と dates のファイルURLを取得
+            const titleResourceUrls = titlesDataset.containedResources;
+            const datesResourceUrls = datesDataset.containedResources;
 
-            // イベントIDをキーとしたマップを作成
+            // タイトルと日時のマップを作成
             let titlesMap = {};
-            titleThings.forEach((thing) => {
-                let eventId = getStringNoLocale(thing, SCHEMA_INRUPT.identifier);
-                let title = getStringNoLocale(thing, SCHEMA_INRUPT.name);
-                if (eventId && title) {
-                    titlesMap[eventId] = title;
+            for (let resourceUrl of titleResourceUrls) {
+                try {
+                    let titleDataset = await getSolidDataset(resourceUrl, { fetch: fetch });
+                    let titleThing = getThingAll(titleDataset)[0]; // データセット内の最初のThingを取得
+
+                    let eventId = getStringNoLocale(titleThing, SCHEMA_INRUPT.identifier);
+                    let title = getStringNoLocale(titleThing, SCHEMA_INRUPT.name);
+                    if (eventId && title) {
+                        titlesMap[eventId] = title;
+                    }
+                } catch (error) {
+                    console.error(`Error reading title from ${resourceUrl}:`, error);
                 }
-            });
+            }
 
             let datesMap = {};
-            dateThings.forEach((thing) => {
-                let eventId = getStringNoLocale(thing, SCHEMA_INRUPT.identifier);
-                let startDate = getDatetime(thing, SCHEMA_INRUPT.startDate);
-                let endDate = getDatetime(thing, SCHEMA_INRUPT.endDate);
-                if (eventId) {
-                    datesMap[eventId] = {
-                        startDate: startDate,
-                        endDate: endDate
-                    };
+            for (let resourceUrl of datesResourceUrls) {
+                try {
+                    let datesDataset = await getSolidDataset(resourceUrl, { fetch: fetch });
+                    let datesThing = getThingAll(datesDataset)[0]; // データセット内の最初のThingを取得
+
+                    let eventId = getStringNoLocale(datesThing, SCHEMA_INRUPT.identifier);
+                    let startDate = getDatetime(datesThing, SCHEMA_INRUPT.startDate);
+                    let endDate = getDatetime(datesThing, SCHEMA_INRUPT.endDate);
+                    if (eventId) {
+                        datesMap[eventId] = {
+                            startDate: startDate,
+                            endDate: endDate
+                        };
+                    }
+                } catch (error) {
+                    console.error(`Error reading dates from ${resourceUrl}:`, error);
                 }
-            });
+            }
 
             // イベントIDでデータを結合
             let listContent = [];
@@ -447,159 +461,178 @@ export default {
             this.ReadData = listContent;
         },
 
+        // タイトルファイルにアクセス権を設定
+        async accessTitleFile(eventId) {
+            const titlesDirUrl = this.PodUrl + 'schedules/titles/';
+            const titleFileUrl = titlesDirUrl + eventId + '.ttl';
+
+            await universalAccess.setAgentAccess(
+                titleFileUrl,
+                "https://id.inrupt.com/kuwabarbara2", // 例: 特定のエージェント
+                { read: true, write: false },        // 読み取りのみ許可
+                { fetch: fetch }
+            ).then((newAccess) => {
+                if (newAccess === null) {
+                    console.log("Could not load access details for the Title Resource.");
+                } else {
+                    console.log("Returned Title Access:: ", JSON.stringify(newAccess));
+                }
+            });
+        },
+
+        // 日時ファイルにアクセス権を設定
+        async accessDatesFile(eventId) {
+            const datesDirUrl = this.PodUrl + 'schedules/dates/';
+            const datesFileUrl = datesDirUrl + eventId + '.ttl';
+
+            await universalAccess.setAgentAccess(
+                datesFileUrl,
+                "https://id.inrupt.com/kuwabarbara2", // 例: 別のエージェント
+                { read: true, write: true },         // 読み取りと書き込みを許可
+                { fetch: fetch }
+            ).then((newAccess) => {
+                if (newAccess === null) {
+                    console.log("Could not load access details for the Dates Resource.");
+                } else {
+                    console.log("Returned Dates Access:: ", JSON.stringify(newAccess));
+                }
+            });
+        },
+
         //予定の数を数える関数
         async cntSchedule() {
-            console.log("readTodoList");
-            console.log(this.PodUrl);
+            console.log("cntSchedule");
+            const schedulesDirUrl = this.PodUrl + 'schedules/';
+            const titlesDirUrl = schedulesDirUrl + 'titles/';
 
-            // Make authenticated requests by passing `fetch` to the solid-client functions.
-            const myDataset = await getSolidDataset(this.PodUrl, { fetch: fetch });
-
-            let items = getThingAll(myDataset);
-
-            let listcontent = [];
-
-            for (let i = 0; i < items.length; i++) {
-                console.log("Processing item", i);
-                let item = items[i];
-                console.log(JSON.stringify(item, null, 2)); // データ構造を完全にログ出力
-
-                let title = getStringNoLocale(item, SCHEMA_INRUPT.name);
-                console.log("title", title);
-
-                let startDate = getDatetime(item, SCHEMA_INRUPT.startDate);
-                console.log("startDate", startDate);
-
-                let endDate = getDatetime(item, SCHEMA_INRUPT.endDate);
-                console.log("endDate", endDate);
-
-                //let location = getStringNoLocale(item, SCHEMA_INRUPT.location) || "";
-                //console.log("location", location);
-
-                //let description = getStringNoLocale(item, SCHEMA_INRUPT.description) || "";
-                //console.log("description", description);
-
-                if (title !== null) {
-                    console.log("Adding item to list");
-                    listcontent.push({
-                        title: title,
-                        startDate: startDate,
-                        endDate: endDate,
-                        //location: location,
-                        //description: description
-                    });
-                }
-                else {
-                    console.log("No title found for item", i);
+            // titles ディレクトリのコンテンツを取得
+            let titlesDataset;
+            try {
+                titlesDataset = await getSolidDataset(titlesDirUrl, { fetch: fetch });
+            } catch (error) {
+                if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                    console.error("Titles directory not found.");
+                    return 0;
+                } else {
+                    console.error(error.message);
+                    return 0;
                 }
             }
 
-            //listcontentの長さを返す
-            return listcontent.length;
+            // titles ディレクトリ内の全てのファイルURLを取得
+            const titleResourceUrls = titlesDataset.containedResources;
+
+            // ファイル数を返す
+            return titleResourceUrls.length;
         },
-
         async updateToDoList(myChangedDataset) {
-            let cnt = 0;
-
-            cnt = await this.cntSchedule();
-            console.log("元の予定の数");
-            console.log(cnt);
-
             console.log("updateToDoList");
             console.log(this.selectedDate);
 
-            // タイトルと日時を別々のファイルに保存するためのURLを定義
-            const titlesUrl = this.PodUrl + 'titles';
-            const datesUrl = this.PodUrl + 'dates';
+            // 予定を保存するディレクトリのURLを定義
+            const schedulesDirUrl = this.PodUrl + 'schedules/';
 
-            console.log(titlesUrl);
-            console.log(datesUrl);
+            // titles と dates のサブディレクトリのURLを定義
+            const titlesDirUrl = schedulesDirUrl + 'titles/';
+            const datesDirUrl = schedulesDirUrl + 'dates/';
+
+            // titles ディレクトリが存在しない場合は作成
+            try {
+                await getSolidDataset(titlesDirUrl, { fetch: fetch });
+            } catch (error) {
+                if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                    await saveSolidDatasetAt(
+                        titlesDirUrl,
+                        createSolidDataset(),
+                        { fetch: fetch }
+                    );
+                    console.log(`Created directory: ${titlesDirUrl}`);
+                } else {
+                    console.error(error.message);
+                    return;
+                }
+            }
+
+            // dates ディレクトリが存在しない場合は作成
+            try {
+                await getSolidDataset(datesDirUrl, { fetch: fetch });
+            } catch (error) {
+                if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                    await saveSolidDatasetAt(
+                        datesDirUrl,
+                        createSolidDataset(),
+                        { fetch: fetch }
+                    );
+                    console.log(`Created directory: ${datesDirUrl}`);
+                } else {
+                    console.error(error.message);
+                    return;
+                }
+            }
 
             let titles = myChangedDataset.split("\n");
 
-            // タイトルと日時のデータセットを取得または作成
-            let titlesDataset;
-            let datesDataset;
-
-            try {
-                titlesDataset = await getSolidDataset(titlesUrl, { fetch: fetch });
-            } catch (error) {
-                if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                    titlesDataset = createSolidDataset();
-                } else {
-                    console.error(error.message);
-                    return;
-                }
-            }
-
-            try {
-                datesDataset = await getSolidDataset(datesUrl, { fetch: fetch });
-            } catch (error) {
-                if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                    datesDataset = createSolidDataset();
-                } else {
-                    console.error(error.message);
-                    return;
-                }
-            }
-
             // イベントごとに処理
-            let i = 0;
-            titles.forEach((title) => {
+            for (let i = 0; i < titles.length; i++) {
+                let title = titles[i];
                 if (title.trim() !== "") {
-                    let eventId = "schedule" + (i + cnt);
+                    // イベントIDとしてユニークな文字列を生成（例：タイムスタンプとインデックスの組み合わせ）
+                    let eventId = 'event-' + Date.now() + '-' + i;
 
-                    // タイトルのThingを作成し、イベントIDを追加
+                    // タイトルと日時のファイルのURLを定義
+                    const titleFileUrl = titlesDirUrl + eventId + '.ttl';
+                    const datesFileUrl = datesDirUrl + eventId + '.ttl';
+
+                    // タイトルのデータセットを作成
+                    let titleDataset = createSolidDataset();
                     let titleThing = createThing({ name: eventId });
-                    titleThing = addUrl(titleThing, RDF.type, AS.Article);
+                    titleThing = addUrl(titleThing, RDF.type, SCHEMA_INRUPT.Event);
                     titleThing = addStringNoLocale(titleThing, SCHEMA_INRUPT.name, title);
                     titleThing = addStringNoLocale(titleThing, SCHEMA_INRUPT.identifier, eventId);
+                    titleDataset = setThing(titleDataset, titleThing);
 
-                    // タイトルのデータセットに追加
-                    titlesDataset = setThing(titlesDataset, titleThing);
+                    // タイトルのデータセットを保存
+                    try {
+                        await saveSolidDatasetAt(
+                            titleFileUrl,
+                            titleDataset,
+                            { fetch: fetch }
+                        );
+                        console.log(`Saved title: ${titleFileUrl}`);
+                    } catch (error) {
+                        console.error(`Error saving title for ${eventId}:`, error);
+                    }
 
-                    // 日時のThingを作成し、イベントIDを追加
+                    // 日時のデータセットを作成
+                    let datesDataset = createSolidDataset();
+                    let datesThing = createThing({ name: eventId });
+                    datesThing = addUrl(datesThing, RDF.type, SCHEMA_INRUPT.Event);
+                    datesThing = addStringNoLocale(datesThing, SCHEMA_INRUPT.identifier, eventId);
+
                     if (this.selectedData && this.selectedData[i]) {
-                        let datesThing = createThing({ name: eventId });
-                        datesThing = addUrl(datesThing, RDF.type, AS.Article);
-                        datesThing = addStringNoLocale(datesThing, SCHEMA_INRUPT.identifier, eventId);
-
                         let startDate = new Date(this.selectedData[i].startDate);
                         let endDate = new Date(this.selectedData[i].endDate);
 
                         datesThing = addDatetime(datesThing, SCHEMA_INRUPT.startDate, startDate);
                         datesThing = addDatetime(datesThing, SCHEMA_INRUPT.endDate, endDate);
-
-                        // 日時のデータセットに追加
-                        datesDataset = setThing(datesDataset, datesThing);
                     } else {
                         console.warn(`No date provided for item ${i}`);
                     }
 
-                    i++;
+                    datesDataset = setThing(datesDataset, datesThing);
+
+                    // 日時のデータセットを保存
+                    try {
+                        await saveSolidDatasetAt(
+                            datesFileUrl,
+                            datesDataset,
+                            { fetch: fetch }
+                        );
+                        console.log(`Saved dates: ${datesFileUrl}`);
+                    } catch (error) {
+                        console.error(`Error saving dates for ${eventId}:`, error);
+                    }
                 }
-            });
-
-            try {
-                // タイトルのデータセットを保存
-                let savedTitlesDataset = await saveSolidDatasetAt(
-                    titlesUrl,
-                    titlesDataset,
-                    { fetch: fetch }
-                );
-
-                // 日時のデータセットを保存
-                let savedDatesDataset = await saveSolidDatasetAt(
-                    datesUrl,
-                    datesDataset,
-                    { fetch: fetch }
-                );
-
-                console.log('Saved titles dataset:', savedTitlesDataset);
-                console.log('Saved dates dataset:', savedDatesDataset);
-
-            } catch (error) {
-                console.log(error);
             }
         }
 
