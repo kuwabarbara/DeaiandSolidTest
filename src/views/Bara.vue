@@ -35,19 +35,31 @@
         </form>
 
         <br>
-        <button @click="readTodoList">Read Todo List</button>
+        <button @click="readTodoList">Read My Todo List</button>
         <br>
         <br>
         Read Data:
         <br>
-        {{ ReadData }}
+        <pre>{{ ReadData }}</pre>
+        <br>
+        <hr>
+        <!-- 他のユーザーのPodからデータを取得する部分 -->
+        <h3>Read Other User's Schedules</h3>
+        <input type="text" v-model="otherUserWebId" placeholder="Enter other user's WebID">
+        <br>
+        <button @click="readOtherUserSchedules">Read Other User's Schedules</button>
+        <br>
+        <br>
+        Other User's Data:
+        <br>
+        <pre>{{ OtherUserData }}</pre>
         <br>
     </div>
 </template>
 
 <script>
-import { getDefaultSession } from '@inrupt/solid-client-authn-browser'
-import { fetch } from '@inrupt/solid-client-authn-browser'
+import { getDefaultSession, handleIncomingRedirect, login } from '@inrupt/solid-client-authn-browser';
+import { fetch } from '@inrupt/solid-client-authn-browser';
 
 import {
     addUrl,
@@ -56,12 +68,9 @@ import {
     createThing,
     getPodUrlAll,
     getSolidDataset,
-    getThingAll,
-    getStringNoLocale,
     saveSolidDatasetAt,
     setThing,
     addDatetime,
-    getDatetime,
     createContainerAt,
     getContainedResourceUrlAll,
 } from "@inrupt/solid-client";
@@ -69,8 +78,6 @@ import {
 import { universalAccess } from "@inrupt/solid-client";
 
 import { SCHEMA_INRUPT, RDF } from "@inrupt/vocab-common-rdf";
-
-import { handleIncomingRedirect, login } from '@inrupt/solid-client-authn-browser';
 
 export default {
     name: 'Bara',
@@ -84,7 +91,10 @@ export default {
             newEndDate: "",
             newTitleAccess: "public",
             newDatesAccess: "private",
-            ReadData: []
+            ReadData: [],
+            otherUserWebId: '',
+            OtherUserData: [],
+            checklists: [] // 追加: checklistsリスト
         };
     },
     created() {
@@ -105,8 +115,12 @@ export default {
                 console.log(`Logged in as ${getDefaultSession().info.webId}`);
                 const pods = await getPodUrlAll(getDefaultSession().info.webId, { fetch: fetch });
                 console.log(pods);
+                if (pods.length === 0) {
+                    console.error("No Pods found for this WebID.");
+                    return;
+                }
                 this.PodUrl = pods[0] + "KuwaSchedule/";
-                console.log(this.PodUrl);
+                console.log(`Pod URL set to: ${this.PodUrl}`);
             } else {
                 console.log(`Not logged in`);
             }
@@ -138,28 +152,14 @@ export default {
             const titlesDirUrl = schedulesDirUrl + 'titles/';
             const datesDirUrl = schedulesDirUrl + 'dates/';
 
-            // Ensure directories exist
-            try {
-                await getSolidDataset(titlesDirUrl, { fetch: fetch });
-            } catch (error) {
-                if (error.statusCode === 404) {
-                    await createContainerAt(titlesDirUrl, { fetch: fetch });
-                } else {
-                    console.error(error.message);
-                    return;
-                }
-            }
+            // Ensure schedules directory exists and set to public
+            await this.ensureContainerExists(schedulesDirUrl);
 
-            try {
-                await getSolidDataset(datesDirUrl, { fetch: fetch });
-            } catch (error) {
-                if (error.statusCode === 404) {
-                    await createContainerAt(datesDirUrl, { fetch: fetch });
-                } else {
-                    console.error(error.message);
-                    return;
-                }
-            }
+            // Ensure titles directory exists and set to public
+            await this.ensureContainerExists(titlesDirUrl);
+
+            // Ensure dates directory exists and set to public
+            await this.ensureContainerExists(datesDirUrl);
 
             // Process each event
             for (let i = 0; i < this.selectedData.length; i++) {
@@ -212,22 +212,70 @@ export default {
             // Clear selectedData after processing
             this.selectedData = [];
         },
-        async setAccess(fileUrl, accessLevel) {
-            const isPublic = accessLevel === 'public';
+        async ensureContainerExists(containerUrl) {
             try {
-                await universalAccess.setPublicAccess(
-                    fileUrl,
-                    { read: isPublic, write: false },
-                    { fetch: fetch }
-                );
-                console.log(`Set ${accessLevel} access for ${fileUrl}`);
+                await getSolidDataset(containerUrl, { fetch: fetch });
+                console.log(`Container already exists: ${containerUrl}`);
             } catch (error) {
-                console.error(`Error setting access for ${fileUrl}:`, error);
+                if (error.statusCode === 404) {
+                    try {
+                        await createContainerAt(containerUrl, { fetch: fetch });
+                        console.log(`Created container: ${containerUrl}`);
+                        // Set access on the container to public
+                        await this.setAccess(containerUrl, 'public');
+                    } catch (createError) {
+                        console.error(`Error creating container ${containerUrl}:`, createError);
+                    }
+                } else {
+                    console.error(`Error accessing container ${containerUrl}:`, error);
+                }
+            }
+        },
+        async setAccess(resourceUrl, accessLevel) {
+            try {
+                if (accessLevel === 'public') {
+                    await universalAccess.setPublicAccess(
+                        resourceUrl,
+                        { read: true, write: false },
+                        { fetch: fetch }
+                    );
+                } else if (accessLevel === 'private') {
+                    await universalAccess.setPublicAccess(
+                        resourceUrl,
+                        { read: false, write: false },
+                        { fetch: fetch }
+                    );
+                }
+                console.log(`Set ${accessLevel} access for ${resourceUrl}`);
+            } catch (error) {
+                console.error(`Error setting access for ${resourceUrl}:`, error);
             }
         },
         async readTodoList() {
             console.log("readTodoList");
-            const schedulesDirUrl = this.PodUrl + 'schedules/';
+            await this.readSchedulesFromPod(this.PodUrl, 'My');
+        },
+        async readOtherUserSchedules() {
+            console.log("readOtherUserSchedules");
+            if (!this.otherUserWebId) {
+                console.error("Please enter the other user's WebID.");
+                return;
+            }
+            try {
+                const otherUserPods = await getPodUrlAll(this.otherUserWebId, { fetch: fetch });
+                if (otherUserPods.length === 0) {
+                    console.error("Could not find any Pods for the given WebID.");
+                    return;
+                }
+                const otherUserPodUrl = otherUserPods[0] + "KuwaSchedule/";
+                console.log(`Other user's Pod URL: ${otherUserPodUrl}`);
+                await this.readSchedulesFromPod(otherUserPodUrl, 'OtherUser');
+            } catch (error) {
+                console.error("Error fetching other user's Pod URL:", error);
+            }
+        },
+        async readSchedulesFromPod(podUrl, dataType) {
+            const schedulesDirUrl = podUrl + 'schedules/';
             const titlesDirUrl = schedulesDirUrl + 'titles/';
             const datesDirUrl = schedulesDirUrl + 'dates/';
 
@@ -235,122 +283,123 @@ export default {
             let titlesDataset;
             try {
                 titlesDataset = await getSolidDataset(titlesDirUrl, { fetch: fetch });
+                console.log(`${dataType} user's Titles directory accessed successfully.`);
             } catch (error) {
-                if (error.statusCode === 404) {
-                    console.error("Titles directory not found.");
-                    return;
+                if (error.statusCode === 403) {
+                    console.error(`${dataType} user has not granted access to titles directory.`);
+                } else if (error.statusCode === 404) {
+                    console.error(`${dataType} user's Titles directory not found.`);
                 } else {
-                    console.error(error.message);
-                    return;
+                    console.error(`Error accessing titles directory: ${error.message}`);
                 }
+                // Continue processing dates even if titles directory is inaccessible
             }
 
             // dates ディレクトリのコンテンツを取得
             let datesDataset;
             try {
                 datesDataset = await getSolidDataset(datesDirUrl, { fetch: fetch });
+                console.log(`${dataType} user's Dates directory accessed successfully.`);
             } catch (error) {
-                if (error.statusCode === 404) {
-                    console.error("Dates directory not found.");
-                    return;
+                if (error.statusCode === 403) {
+                    console.error(`${dataType} user has not granted access to dates directory.`);
+                } else if (error.statusCode === 404) {
+                    console.error(`${dataType} user's Dates directory not found.`);
                 } else {
-                    console.error(error.message);
-                    return;
+                    console.error(`Error accessing dates directory: ${error.message}`);
                 }
+                // Continue processing titles even if dates directory is inaccessible
             }
 
-            // titles と dates のファイルURLを取得
-            const titleResourceUrls = getContainedResourceUrlAll(titlesDataset);
-            const datesResourceUrls = getContainedResourceUrlAll(datesDataset);
-
-            // タイトルと日時のマップを作成
-            let titlesMap = {};
-            for (let resourceUrl of titleResourceUrls) {
-                try {
-                    let titleDataset = await getSolidDataset(resourceUrl, { fetch: fetch });
-                    let titleThing = getThingAll(titleDataset)[0];
-
-                    let eventId = getStringNoLocale(titleThing, SCHEMA_INRUPT.identifier);
-                    let title = getStringNoLocale(titleThing, SCHEMA_INRUPT.name);
-
-                    // Get access permissions
-                    let titleAccess = await this.getAccessPermissions(resourceUrl);
-
-                    if (eventId && title) {
-                        titlesMap[eventId] = { title, titleAccess };
-                    }
-                } catch (error) {
-                    console.error(`Error reading title from ${resourceUrl}:`, error);
-                }
+            // titles と dates のファイルURLを取得し、.ttlファイルのみをフィルタリング
+            let titleResourceUrls = [];
+            if (titlesDataset) {
+                titleResourceUrls = getContainedResourceUrlAll(titlesDataset).filter(url => url.endsWith('.ttl'));
             }
 
-            let datesMap = {};
-            for (let resourceUrl of datesResourceUrls) {
-                try {
-                    let datesDataset = await getSolidDataset(resourceUrl, { fetch: fetch });
-                    let datesThing = getThingAll(datesDataset)[0];
-
-                    let eventId = getStringNoLocale(datesThing, SCHEMA_INRUPT.identifier);
-                    let startDate = getDatetime(datesThing, SCHEMA_INRUPT.startDate);
-                    let endDate = getDatetime(datesThing, SCHEMA_INRUPT.endDate);
-
-                    // Get access permissions
-                    let datesAccess = await this.getAccessPermissions(resourceUrl);
-
-                    if (eventId) {
-                        datesMap[eventId] = {
-                            startDate,
-                            endDate,
-                            datesAccess
-                        };
-                    }
-                } catch (error) {
-                    console.error(`Error reading dates from ${resourceUrl}:`, error);
-                }
+            let datesResourceUrls = [];
+            if (datesDataset) {
+                datesResourceUrls = getContainedResourceUrlAll(datesDataset).filter(url => url.endsWith('.ttl'));
             }
 
-            // イベントIDでデータを結合
-            let listContent = [];
+            // titles と dates の .ttlファイルのURLを checklists に格納
+            this.checklists = [...titleResourceUrls, ...datesResourceUrls];
 
-            for (let eventId in titlesMap) {
-                let titleInfo = titlesMap[eventId];
-                let dates = datesMap[eventId] || {};
-                listContent.push({
-                    eventId: eventId,
-                    title: titleInfo.title,
-                    startDate: dates.startDate,
-                    endDate: dates.endDate,
-                    titleAccess: titleInfo.titleAccess,
-                    datesAccess: dates.datesAccess
-                });
-
-                // Log access permissions
-                console.log(`Title File Access for ${eventId}: ${titleInfo.titleAccess}`);
-                console.log(`Dates File Access for ${eventId}: ${dates.datesAccess}`);
-            }
-
-            console.log(listContent);
-
-            // データを表示または使用
-            this.ReadData = listContent;
+            // checklists をコンソールに表示
+            console.log(`${dataType} user's Checklists:`);
+            this.checklists.forEach(url => console.log(url));
         },
-        async getAccessPermissions(resourceUrl) {
-            let access = await universalAccess.getPublicAccess(
-                resourceUrl,
-                { fetch: fetch }
-            );
-
-            if (access === null) {
-                console.log(`Could not load access details for ${resourceUrl}.`);
-                return 'unknown';
-            } else {
-                if (access.read === true) {
-                    return 'public';
+        async checkFileAccess(url) {
+            try {
+                const response = await fetch(url, { method: 'GET' });
+                if (response.ok) {
+                    console.log(`Accessible: ${url}`);
+                    return true;
+                } else if (response.status === 403) {
+                    console.log(`Access Denied (403): ${url}`);
+                    return false;
                 } else {
-                    return 'private';
+                    console.log(`Access Failed (${response.status}): ${url}`);
+                    return false;
+                }
+            } catch (error) {
+                console.log(`Error accessing ${url}:`, error);
+                return false;
+            }
+        },
+        async fetchAndLogContent(url, type) {
+            try {
+                const response = await fetch(url, { method: 'GET' });
+                if (response.ok) {
+                    const content = await response.text();
+                    console.log(`${type} TTL File Content (${url}):\n`, content);
+                    return content;
+                } else {
+                    console.log(`Failed to fetch content for ${type} TTL File (${url}): ${response.status}`);
+                    return null;
+                }
+            } catch (error) {
+                console.log(`Error fetching content for ${type} TTL File (${url}):`, error);
+                return null;
+            }
+        },
+        parseTTLContent(content) {
+            // 簡単なTTLパーサー。実際にはRDFパーサーを使用することを推奨します。
+            if (!content) return null;
+            const lines = content.split('\n');
+            const data = {};
+            for (let line of lines) {
+                if (line.includes(SCHEMA_INRUPT.name)) {
+                    const match = line.match(/schema:name\s+"([^"]+)"/);
+                    if (match) {
+                        data.name = match[1];
+                    }
+                }
+                if (line.includes(SCHEMA_INRUPT.identifier)) {
+                    const match = line.match(/schema:identifier\s+"([^"]+)"/);
+                    if (match) {
+                        data.identifier = match[1];
+                    }
+                }
+                if (line.includes(SCHEMA_INRUPT.startDate)) {
+                    const match = line.match(/schema:startDate\s+<([^>]+)>/);
+                    if (match) {
+                        data.startDate = new Date(match[1]);
+                    }
+                }
+                if (line.includes(SCHEMA_INRUPT.endDate)) {
+                    const match = line.match(/schema:endDate\s+<([^>]+)>/);
+                    if (match) {
+                        data.endDate = new Date(match[1]);
+                    }
                 }
             }
+            return data;
         },
     }
 }
 </script>
+
+<style scoped>
+/* スタイルは必要に応じて追加してください */
+</style>
