@@ -81,6 +81,8 @@ import 'firebase/compat/database';
     setThing,
     addDatetime,
     getDatetime,
+    createContainerAt, 
+    getContainedResourceUrlAll,
   } from "@inrupt/solid-client";
 
   import { universalAccess } from "@inrupt/solid-client";
@@ -401,8 +403,8 @@ export default {
             }
 
             // titles と dates のファイルURLを取得
-            const titleResourceUrls = titlesDataset.containedResources;
-            const datesResourceUrls = datesDataset.containedResources;
+            const titleResourceUrls = getContainedResourceUrlAll(titlesDataset);
+            const datesResourceUrls = getContainedResourceUrlAll(datesDataset);
 
             // タイトルと日時のマップを作成
             let titlesMap = {};
@@ -541,9 +543,8 @@ export default {
                 await getSolidDataset(titlesDirUrl, { fetch: fetch });
             } catch (error) {
                 if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                    await saveSolidDatasetAt(
+                    await createContainerAt(
                         titlesDirUrl,
-                        createSolidDataset(),
                         { fetch: fetch }
                     );
                     console.log(`Created directory: ${titlesDirUrl}`);
@@ -558,9 +559,8 @@ export default {
                 await getSolidDataset(datesDirUrl, { fetch: fetch });
             } catch (error) {
                 if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                    await saveSolidDatasetAt(
+                    await createContainerAt(
                         datesDirUrl,
-                        createSolidDataset(),
                         { fetch: fetch }
                     );
                     console.log(`Created directory: ${datesDirUrl}`);
