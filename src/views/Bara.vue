@@ -54,6 +54,13 @@
         <br>
         <pre>{{ OtherUserData }}</pre>
         <br>
+        <hr>
+        <!-- 空いている時間帯を表示する部分 -->
+        <h3>Find Available Slots</h3>
+        <button @click="findAvailableSlots">Find Available Slots</button>
+        <br>
+        <pre>{{ AvailableSlots }}</pre>
+        <br>
     </div>
 </template>
 
@@ -94,7 +101,8 @@ export default {
             ReadData: {},
             otherUserWebId: '',
             OtherUserData: {},
-            checklists: [] // 追加: checklistsリスト
+            checklists: [], // 追加: checklistsリスト
+            AvailableSlots: [] // 追加: AvailableSlotsリスト
         };
     },
     created() {
@@ -495,10 +503,143 @@ export default {
             }
             return data;
         },
+        async findAvailableSlots() {
+            console.log("findAvailableSlots");
+
+            // 取得した自分と相手のイベントデータを取得
+            const myEvents = Object.values(this.ReadData).filter(event => event.startDate && event.endDate);
+            const otherEvents = Object.values(this.OtherUserData).filter(event => event.startDate && event.endDate);
+
+            // イベントを統合
+            const allEvents = [...myEvents, ...otherEvents];
+
+            if (allEvents.length === 0) {
+                console.log("No events found to calculate available slots.");
+                this.AvailableSlots = [];
+                return;
+            }
+
+            // 日程調整のための時間範囲を定義（例: 今日から1週間）
+            const now = new Date();
+            const startRange = new Date(now);
+            const endRange = new Date(now);
+            endRange.setDate(endRange.getDate() + 7); // 1週間後
+
+            // 毎日の業務時間を定義（例: 08:00 - 20:00）
+            const dailyStartHour = 0;
+            const dailyEndHour = 24;
+
+            // 各日の予定を収集
+            const busySlots = {};
+
+            for (let event of allEvents) {
+                const eventStart = new Date(event.startDate);
+                const eventEnd = new Date(event.endDate);
+
+                // イベントが範囲外の場合はスキップ
+                if (eventEnd < startRange || eventStart > endRange) continue;
+
+                // イベントが開始範囲より前の場合は調整
+                const actualStart = eventStart < startRange ? new Date(startRange) : eventStart;
+                // イベントが終了範囲より後の場合は調整
+                const actualEnd = eventEnd > endRange ? new Date(endRange) : eventEnd;
+
+                // イベントが複数日にまたがる場合を考慮
+                let current = new Date(actualStart);
+                while (current < actualEnd) {
+                    const day = current.toISOString().split('T')[0];
+                    if (!busySlots[day]) {
+                        busySlots[day] = [];
+                    }
+
+                    // 当日の業務時間の開始と終了
+                    const dayStart = new Date(`${day}T${String(dailyStartHour).padStart(2, '0')}:00:00.000Z`);
+                    const dayEnd = new Date(`${day}T${String(dailyEndHour).padStart(2, '0')}:00:00.000Z`);
+
+                    // イベントの当日開始と終了
+                    const slotStart = new Date(Math.max(actualStart, dayStart));
+                    const slotEnd = new Date(Math.min(actualEnd, dayEnd));
+
+                    if (slotStart < slotEnd) {
+                        busySlots[day].push({ start: slotStart, end: slotEnd });
+                    }
+
+                    // 次の日へ
+                    current.setUTCDate(current.getUTCDate() + 1);
+                    current.setUTCHours(0, 0, 0, 0);
+                }
+            }
+
+            // 各日の空き時間を計算
+            const availableSlots = [];
+
+            for (let d = new Date(startRange); d <= endRange; d.setUTCDate(d.getUTCDate() + 1)) {
+                const day = d.toISOString().split('T')[0];
+                const dayStart = new Date(`${day}T${String(dailyStartHour).padStart(2, '0')}:00:00.000Z`);
+                const dayEnd = new Date(`${day}T${String(dailyEndHour).padStart(2, '0')}:00:00.000Z`);
+
+                const slots = busySlots[day] || [];
+
+                // ソート
+                slots.sort((a, b) => a.start - b.start);
+
+                // 空き時間を計算
+                let lastEnd = dayStart;
+
+                for (let slot of slots) {
+                    if (lastEnd < slot.start) {
+                        availableSlots.push({
+                            day: day,
+                            start: new Date(lastEnd),
+                            end: new Date(slot.start)
+                        });
+                    }
+                    if (slot.end > lastEnd) {
+                        lastEnd = slot.end;
+                    }
+                }
+
+                if (lastEnd < dayEnd) {
+                    availableSlots.push({
+                        day: day,
+                        start: new Date(lastEnd),
+                        end: new Date(dayEnd)
+                    });
+                }
+            }
+
+            // 空いている時間帯をコンソールに表示
+            console.log("Available Slots:");
+            availableSlots.forEach(slot => {
+                console.log(`${slot.day}: ${slot.start.toISOString()} - ${slot.end.toISOString()}`);
+            });
+
+            // UIに表示
+            this.AvailableSlots = availableSlots.map(slot => ({
+                day: slot.day,
+                start: slot.start.toISOString(),
+                end: slot.end.toISOString()
+            }));
+        }
     }
 }
 </script>
 
 <style scoped>
 /* スタイルは必要に応じて追加してください */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
 </style>
