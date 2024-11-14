@@ -91,9 +91,9 @@ export default {
             newEndDate: "",
             newTitleAccess: "public",
             newDatesAccess: "private",
-            ReadData: [],
+            ReadData: {},
             otherUserWebId: '',
-            OtherUserData: [],
+            OtherUserData: {},
             checklists: [] // 追加: checklistsリスト
         };
     },
@@ -114,7 +114,7 @@ export default {
             if (getDefaultSession().info.isLoggedIn) {
                 console.log(`Logged in as ${getDefaultSession().info.webId}`);
                 const pods = await getPodUrlAll(getDefaultSession().info.webId, { fetch: fetch });
-                console.log(pods);
+                console.log("Available Pods:", pods);
                 if (pods.length === 0) {
                     console.error("No Pods found for this WebID.");
                     return;
@@ -253,7 +253,7 @@ export default {
         },
         async readTodoList() {
             console.log("readTodoList");
-            await this.readSchedulesFromPod(this.PodUrl, 'My');
+            await this.readSchedulesFromPod(this.PodUrl, 'My', true); // 自分のPodの場合はtrue
         },
         async readOtherUserSchedules() {
             console.log("readOtherUserSchedules");
@@ -269,15 +269,18 @@ export default {
                 }
                 const otherUserPodUrl = otherUserPods[0] + "KuwaSchedule/";
                 console.log(`Other user's Pod URL: ${otherUserPodUrl}`);
-                await this.readSchedulesFromPod(otherUserPodUrl, 'OtherUser');
+                await this.readSchedulesFromPod(otherUserPodUrl, 'OtherUser', false); // 他のユーザーのPodの場合はfalse
             } catch (error) {
                 console.error("Error fetching other user's Pod URL:", error);
             }
         },
-        async readSchedulesFromPod(podUrl, dataType) {
+        async readSchedulesFromPod(podUrl, dataType, isOwnPod) {
             const schedulesDirUrl = podUrl + 'schedules/';
             const titlesDirUrl = schedulesDirUrl + 'titles/';
             const datesDirUrl = schedulesDirUrl + 'dates/';
+
+            // Reset checklists before fetching new URLs
+            this.checklists = [];
 
             // titles ディレクトリのコンテンツを取得
             let titlesDataset;
@@ -328,6 +331,100 @@ export default {
             // checklists をコンソールに表示
             console.log(`${dataType} user's Checklists:`);
             this.checklists.forEach(url => console.log(url));
+
+            // マップグラフの作成
+            const eventMap = {};
+
+            for (let url of this.checklists) {
+                // Determine if the URL is a title or dates file
+                const isTitleFile = url.includes('/titles/');
+                const isDatesFile = url.includes('/dates/');
+
+                // Extract event ID from URL
+                const eventId = this.extractEventId(url);
+                if (!eventId) {
+                    console.error(`Failed to extract eventId from URL: ${url}`);
+                    continue;
+                }
+
+                // Initialize event entry if not exists
+                if (!eventMap[eventId]) {
+                    eventMap[eventId] = {
+                        eventId: eventId,
+                        title: null,
+                        startDate: null,
+                        endDate: null,
+                        titleAccess: 'Not Found',
+                        datesAccess: 'Not Found'
+                    };
+                }
+
+                // Check access: if own Pod, assume accessible
+                let accessible = isOwnPod ? true : await this.checkFileAccess(url);
+
+                if (accessible) {
+                    // Fetch and parse content
+                    const content = await this.fetchAndLogContent(url, isTitleFile ? 'Title' : 'Dates');
+                    const parsedData = this.parseTTLContent(content);
+
+                    if (isTitleFile) {
+                        if (parsedData && parsedData.name) {
+                            eventMap[eventId].title = parsedData.name;
+                            eventMap[eventId].titleAccess = 'Accessible';
+                        } else {
+                            console.log(`Title data missing in ${url}`);
+                        }
+                    }
+
+                    if (isDatesFile) {
+                        if (parsedData && parsedData.startDate && parsedData.endDate) {
+                            // 修正: parsedData.startDate と parsedData.endDate を Date オブジェクトに変換
+                            const startDate = new Date(parsedData.startDate);
+                            const endDate = new Date(parsedData.endDate);
+                            if (!isNaN(startDate) && !isNaN(endDate)) {
+                                eventMap[eventId].startDate = startDate.toISOString();
+                                eventMap[eventId].endDate = endDate.toISOString();
+                                eventMap[eventId].datesAccess = 'Accessible';
+                            } else {
+                                console.log(`Invalid date format in ${url}`);
+                            }
+                        } else {
+                            console.log(`Dates data missing in ${url}`);
+                        }
+                    }
+                } else {
+                    // Access denied
+                    if (isTitleFile) {
+                        eventMap[eventId].titleAccess = 'Access Denied';
+                    }
+                    if (isDatesFile) {
+                        eventMap[eventId].datesAccess = 'Access Denied';
+                    }
+                }
+            }
+
+            // ログ出力
+            console.log(`${dataType} User's Event Map:`, eventMap);
+
+            // UIに表示
+            if (dataType === 'My') {
+                this.ReadData = eventMap;
+            } else if (dataType === 'OtherUser') {
+                this.OtherUserData = eventMap;
+            }
+        },
+        extractEventId(url) {
+            // URLのパスからイベントIDを抽出
+            try {
+                const path = new URL(url).pathname;
+                const segments = path.split('/');
+                const fileName = segments.pop() || segments.pop(); // Handle potential trailing slash
+                const eventId = fileName.replace('.ttl', '');
+                return eventId;
+            } catch (error) {
+                console.error(`Error extracting eventId from URL ${url}:`, error);
+                return null;
+            }
         },
         async checkFileAccess(url) {
             try {
@@ -364,33 +461,35 @@ export default {
             }
         },
         parseTTLContent(content) {
-            // 簡単なTTLパーサー。実際にはRDFパーサーを使用することを推奨します。
+            // 改善されたTTLパーサー
             if (!content) return null;
             const lines = content.split('\n');
             const data = {};
             for (let line of lines) {
-                if (line.includes(SCHEMA_INRUPT.name)) {
-                    const match = line.match(/schema:name\s+"([^"]+)"/);
+                // タイトルファイルの解析
+                if (line.includes('<http://schema.org/name>')) {
+                    const match = line.match(/<http:\/\/schema\.org\/name>\s+"([^"]+)"/);
                     if (match) {
                         data.name = match[1];
                     }
                 }
-                if (line.includes(SCHEMA_INRUPT.identifier)) {
-                    const match = line.match(/schema:identifier\s+"([^"]+)"/);
+                if (line.includes('<http://schema.org/identifier>')) {
+                    const match = line.match(/<http:\/\/schema\.org\/identifier>\s+"([^"]+)"/);
                     if (match) {
                         data.identifier = match[1];
                     }
                 }
-                if (line.includes(SCHEMA_INRUPT.startDate)) {
-                    const match = line.match(/schema:startDate\s+<([^>]+)>/);
+                // 日付ファイルの解析
+                if (line.includes('<http://schema.org/startDate>')) {
+                    const match = line.match(/<http:\/\/schema\.org\/startDate>\s+"([^"]+)"/);
                     if (match) {
-                        data.startDate = new Date(match[1]);
+                        data.startDate = match[1];
                     }
                 }
-                if (line.includes(SCHEMA_INRUPT.endDate)) {
-                    const match = line.match(/schema:endDate\s+<([^>]+)>/);
+                if (line.includes('<http://schema.org/endDate>')) {
+                    const match = line.match(/<http:\/\/schema\.org\/endDate>\s+"([^"]+)"/);
                     if (match) {
-                        data.endDate = new Date(match[1]);
+                        data.endDate = match[1];
                     }
                 }
             }
